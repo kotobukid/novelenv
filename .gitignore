@@ -1,0 +1,13 @@
+/.idea/
+.claude/settings.local.json
+
+.weaver-narratives.json
+episode_index.json
+
+character_profile/*
+episode/*
+official/*
+scene_sketch/*
+scrap/*
+summary/*
+#writing_style/*

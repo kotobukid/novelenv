@@ -1,0 +1,18 @@
+# find_context 設定ファイル
+
+[profile.aliases]
+# 「find_context profile <キー>」で呼び出されるエイリアス
+"青年騎士" = "character_profile/アベル.md"
+
+# dump_episode_info tool settings
+[tools.llm_cli]
+# The command to execute the LLM CLI. 
+# Examples: "claude", "gemini", "npx claude-cli"
+command = "claude"
+# The flag used to pass a prompt to the command.
+# Examples: "-p", "--prompt"
+prompt_flag = "-p"
+
+[dump_settings]
+input_dir = "episode"
+output_file = "episode_index.json"

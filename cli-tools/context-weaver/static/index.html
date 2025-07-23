@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Weaver</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Context Weaver</h1>
+        </header>
+        
+        <div class="main-content">
+            <div class="file-explorer">
+                <h2>Files</h2>
+                <div id="file-tree" class="tree-view"></div>
+            </div>
+            
+            <div class="narrative-builder">
+                <h2>Narrative Builder</h2>
+                <div class="narrative-controls">
+                    <input type="text" id="narrative-name" placeholder="Narrative name">
+                    <textarea id="narrative-description" placeholder="Description (optional)"></textarea>
+                    <div class="template-checkbox">
+                        <label>
+                            <input type="checkbox" id="is-template"> テンプレート
+                        </label>
+                    </div>
+                    <div class="save-buttons">
+                        <button id="save-narrative">Save</button>
+                        <button id="save-as-new-narrative">Save as New</button>
+                    </div>
+                    <input type="hidden" id="current-narrative-id" value="">
+                </div>
+                
+                <div id="context-list" class="context-list">
+                    <p class="placeholder">Drag files here to add to context</p>
+                </div>
+            </div>
+            
+            <div class="saved-narratives">
+                <h2>Saved Narratives</h2>
+                <div class="narrative-tabs">
+                    <button class="tab-button active" data-tab="normal">通常</button>
+                    <button class="tab-button" data-tab="template">テンプレート</button>
+                </div>
+                <div id="narrative-list"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
