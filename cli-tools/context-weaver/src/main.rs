@@ -30,7 +30,7 @@ enum Commands {
         #[arg(short, long, default_value = "3000")]
         port: u16,
 
-        #[arg(short, long, default_value = ".")]
+        #[arg(short = 'P', long, default_value = ".")]
         path: PathBuf,
     },
 
@@ -39,7 +39,7 @@ enum Commands {
         /// The narrative ID to resolve
         id: Uuid,
 
-        #[arg(short, long, default_value = ".")]
+        #[arg(short = 'P', long, default_value = ".")]
         path: PathBuf,
     },
 }

@@ -44,6 +44,9 @@ project/
 # Webサーバー起動
 ./cli-tools/context-weaver/target/release/weaver serve --port 3000
 
+# パス指定（短縮オプション: -p ポート, -P パス）
+./cli-tools/context-weaver/target/release/weaver serve -p 3000 -P /path/to/project
+
 # 保存されたコンテキストを解決
 ./cli-tools/context-weaver/target/release/weaver resolve <NARRATIVE_ID>
 ```

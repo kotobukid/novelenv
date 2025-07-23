@@ -29,19 +29,31 @@ Context Weaver は、創作プロジェクト向けのナラティブコンテ�
 ### Web UI Server の起動
 
 ```bash
+# From project root directory
+./cli-tools/context-weaver/target/release/weaver serve --port 3000
+
+# Or specify path explicitly
 ./cli-tools/context-weaver/target/release/weaver serve --port 3000 --path /path/to/project
+# Short options: -p for port, -P for path
+./cli-tools/context-weaver/target/release/weaver serve -p 3000 -P /path/to/project
 ```
 
 デフォルトで http://localhost:3000 でアクセス可能になります。
 
 #### オプション
 - `--port, -p`: サーバーポート（デフォルト: 3000）
-- `--path, -p`: プロジェクトルートパス（デフォルト: 現在のディレクトリ）
+- `--path, -P`: プロジェクトルートパス（デフォルト: 現在のディレクトリ）
 
 ### CLI からのナラティブ解決
 
 ```bash
+# From project root directory
+./cli-tools/context-weaver/target/release/weaver resolve <NARRATIVE_ID>
+
+# Or specify path explicitly
 ./cli-tools/context-weaver/target/release/weaver resolve <NARRATIVE_ID> --path /path/to/project
+# Short option: -P for path
+./cli-tools/context-weaver/target/release/weaver resolve <NARRATIVE_ID> -P /path/to/project
 ```
 
 保存されたナラティブの統合コンテキストを標準出力に出力します。
