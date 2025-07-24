@@ -20,6 +20,9 @@ pub struct EpisodeInfo {
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+    
+    #[arg(long, global = true, help = "Enable debug output")]
+    debug: bool,
 }
 
 #[derive(Subcommand, Debug)]
@@ -73,7 +76,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = load_config(&project_root)?;
 
     match cli.command {
-        Commands::Profile { name } => handle_profile_command(name, &project_root, &config)?,
+        Commands::Profile { name } => handle_profile_command(name, &project_root, &config, cli.debug)?,
         Commands::Episode { character } => {
             handle_episode_command(character, &project_root, &config)?
         }
@@ -86,6 +89,7 @@ fn handle_profile_command(
     name: String,
     project_root: &Path,
     config: &Config,
+    debug: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let profile_path_str = config
         .profile
@@ -93,22 +97,55 @@ fn handle_profile_command(
         .and_then(|p| p.aliases.get(&name))
         .cloned();
 
-    let final_path = if let Some(path_str) = profile_path_str {
+    let mut final_path = if let Some(path_str) = profile_path_str {
         project_root.join(path_str)
     } else {
         project_root
             .join("character_profile")
             .join(format!("{name}.md"))
     };
+    
+    if debug {
+        eprintln!("[DEBUG] Initial path: {}", final_path.display());
+    }
+    
+    // Try to canonicalize the path to resolve symlinks
+    if let Ok(canonical_path) = final_path.canonicalize() {
+        if debug {
+            eprintln!("[DEBUG] Canonicalized path: {}", canonical_path.display());
+        }
+        final_path = canonical_path;
+    } else if debug {
+        eprintln!("[DEBUG] Could not canonicalize path (file may not exist)");
+    }
 
     match fs::read_to_string(&final_path) {
         Ok(content) => {
             print!("{content}");
             Ok(())
         }
-        Err(_) => {
-            eprintln!("Error: Profile for '{name}' not found.");
-            eprintln!("Checked alias and direct path: {}", final_path.display());
+        Err(e) => {
+            eprintln!("Error: Failed to read profile for '{name}'");
+            eprintln!("Path: {}", final_path.display());
+            
+            // Check if it's a symlink issue
+            if let Ok(metadata) = fs::symlink_metadata(&final_path) {
+                if metadata.file_type().is_symlink() {
+                    eprintln!("Note: The file is a symbolic link");
+                    match fs::read_link(&final_path) {
+                        Ok(target) => eprintln!("  -> Points to: {}", target.display()),
+                        Err(_) => eprintln!("  -> Unable to read symlink target"),
+                    }
+                }
+            }
+            
+            // Provide specific error details
+            match e.kind() {
+                std::io::ErrorKind::NotFound => eprintln!("Reason: File not found"),
+                std::io::ErrorKind::PermissionDenied => eprintln!("Reason: Permission denied"),
+                _ => eprintln!("Reason: {}", e),
+            }
+            
             std::process::exit(1);
         }
     }
