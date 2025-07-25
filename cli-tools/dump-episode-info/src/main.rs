@@ -40,7 +40,7 @@ pub struct EpisodeInfo {
 fn find_project_root() -> Option<PathBuf> {
     let current_dir = env::current_dir().ok()?;
     for path in current_dir.ancestors() {
-        if path.join(".fcrc").exists() {
+        if path.join("find_context.toml").exists() {
             return Some(path.to_path_buf());
         }
     }
@@ -48,15 +48,15 @@ fn find_project_root() -> Option<PathBuf> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let project_root = find_project_root().ok_or("Error: Could not find project root containing .fcrc file.")?;
-    let config_path = project_root.join(".fcrc");
+    let project_root = find_project_root().ok_or("Error: Could not find project root containing find_context.toml file.")?;
+    let config_path = project_root.join("find_context.toml");
 
     let config_bytes = fs::read(&config_path)?;
     let config_str = String::from_utf8(config_bytes)?;
     let config: Config = toml::from_str(&config_str)?;
 
-    let llm_config = config.tools.and_then(|t| t.llm_cli).ok_or("LLM CLI config not found in .fcrc")?;
-    let dump_settings = config.dump_settings.ok_or("Dump settings not found in .fcrc")?;
+    let llm_config = config.tools.and_then(|t| t.llm_cli).ok_or("LLM CLI config not found in find_context.toml")?;
+    let dump_settings = config.dump_settings.ok_or("Dump settings not found in find_context.toml")?;
 
     let input_pattern = project_root.join(dump_settings.input_dir).join("*.md");
     let output_path = project_root.join(dump_settings.output_file);

@@ -13,7 +13,7 @@
 
 ## Configuration
 
-ツールは `.fcrc` 設定ファイルを使用します。設定例：
+ツールは `find_context.toml` 設定ファイルを使用します。設定例：
 
 ```toml
 [tools.llm_cli]
@@ -69,7 +69,7 @@ cargo run
 
 - Rust 1.70+
 - LLMのCLIツール（Claude CLI、OpenAI CLI等）
-- `.fcrc` 設定ファイル
+- `find_context.toml` 設定ファイル
 
 ## Dependencies
 
@@ -80,7 +80,7 @@ cargo run
 
 ## Technical Notes
 
-- プロジェクトルートは `.fcrc` ファイルの存在で判定
+- プロジェクトルートは `find_context.toml` ファイルの存在で判定
 - LLMレスポンスから正規表現でJSONを抽出
 - パースエラーやLLM呼び出し失敗は個別にログ出力して継続処理
 - 各エピソードファイルに対して個別にLLMを呼び出すため、処理時間が長くなる場合があります

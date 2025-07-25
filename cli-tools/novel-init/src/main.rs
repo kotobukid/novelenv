@@ -210,9 +210,9 @@ node_modules/
 "#;
     fs::write(format!("{}/.wvignore", config.name), wvignore_content)?;
     
-    // .fcrcを作成（find-context用設定）
-    let fcrc_content = generate_fcrc_content(config, import_characters);
-    fs::write(format!("{}/.fcrc", config.name), fcrc_content)?;
+    // find_context.tomlを作成（find-context用設定）
+    let find_context_content = generate_find_context_toml(config, import_characters);
+    fs::write(format!("{}/find_context.toml", config.name), find_context_content)?;
     
     // README.mdを作成
     let readme_content = format!(r#"# {}
@@ -440,7 +440,7 @@ Target Audience: [To be defined in official/ directory]
 "#, config.name, config.project_type, config.genre, config.description, config.created, config.name, config.genre)
 }
 
-fn generate_fcrc_content(config: &ProjectConfig, import_characters: bool) -> String {
+fn generate_find_context_toml(config: &ProjectConfig, import_characters: bool) -> String {
     let mut profile_aliases = String::new();
     
     if import_characters {
@@ -455,7 +455,7 @@ fn generate_fcrc_content(config: &ProjectConfig, import_characters: bool) -> Str
 "#);
     }
     
-    format!(r#"# .fcrc configuration for find-context
+    format!(r#"# find_context.toml - Configuration for find-context tool
 # This file configures the find-context tool for this NovelEnv project
 
 # Aliases for the `profile` subcommand

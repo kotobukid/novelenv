@@ -51,7 +51,7 @@ struct ProfileConfig {
 fn find_project_root() -> Option<PathBuf> {
     let current_dir = env::current_dir().ok()?;
     for path in current_dir.ancestors() {
-        if path.join(".fcrc").exists() || path.join("character_profile").exists() {
+        if path.join("find_context.toml").exists() || path.join("character_profile").exists() {
             return Some(path.to_path_buf());
         }
     }
@@ -59,7 +59,7 @@ fn find_project_root() -> Option<PathBuf> {
 }
 
 fn load_config(project_root: &Path) -> Result<Config, Box<dyn std::error::Error>> {
-    let config_path = project_root.join(".fcrc");
+    let config_path = project_root.join("find_context.toml");
     if config_path.exists() {
         let config_bytes = fs::read(&config_path)?;
         let config_str = String::from_utf8(config_bytes)?;

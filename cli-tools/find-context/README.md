@@ -30,20 +30,20 @@ Retrieves the content of a character's profile file via an alias.
 
 - **Usage**: `find_context profile <alias>`
 - **Action**: 
-  1. Reads the configuration file (`.fcrc`).
+  1. Reads the configuration file (`find_context.toml`).
   2. Looks up the file path associated with the `<alias>` under the `[profile.aliases]` table.
   3. If found, it prints the entire content of the specified file to standard output.
   4. If not found, it prints an error message to standard error and exits with a non-zero status code.
 
-## 3. Configuration File (`.fcrc`)
+## 3. Configuration File (`find_context.toml`)
 
-The tool is configured via a `.fcrc` file located in the project root.
+The tool is configured via a `find_context.toml` file located in the project root.
 
 - **Format**: TOML
 - **Structure**:
 
 ```toml
-# .fcrc configuration for find-context
+# find_context.toml - Configuration for find-context tool
 
 # Aliases for the `profile` subcommand
 [profile.aliases]
