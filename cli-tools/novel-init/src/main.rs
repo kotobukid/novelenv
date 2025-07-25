@@ -177,6 +177,42 @@ Thumbs.db
 "#;
     fs::write(format!("{}/.gitignore", config.name), gitignore_content)?;
     
+    // .wvignoreを作成（Context Weaver用）
+    let wvignore_content = r#"# Git files
+.git/
+.gitignore
+
+# NovelEnv internal files
+.novelenv/
+.weaver-narratives.json
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Claude Code files
+.claude/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Build artifacts
+target/
+node_modules/
+"#;
+    fs::write(format!("{}/.wvignore", config.name), wvignore_content)?;
+    
+    // .fcrcを作成（find-context用設定）
+    let fcrc_content = generate_fcrc_content(config, import_characters);
+    fs::write(format!("{}/.fcrc", config.name), fcrc_content)?;
+    
     // README.mdを作成
     let readme_content = format!(r#"# {}
 
@@ -311,6 +347,47 @@ Genre: {}
 Writing Style: [See writing_style/ directory for specific guidelines]
 Target Audience: [To be defined in official/ directory]
 "#, config.name, config.project_type, config.genre, config.description, config.created, config.name, config.genre)
+}
+
+fn generate_fcrc_content(config: &ProjectConfig, import_characters: bool) -> String {
+    let mut profile_aliases = String::new();
+    
+    if import_characters {
+        profile_aliases.push_str(r#""アベル" = "character_profile/アベル.md"
+"ハンナ" = "character_profile/ハンナ.md"
+"#);
+    } else {
+        profile_aliases.push_str(r#"# Example entries - update these based on your actual character files:
+# "アベル" = "character_profile/アベル.md"
+# "ハンナ" = "character_profile/ハンナ.md"
+# "主人公" = "character_profile/protagonist.md"
+"#);
+    }
+    
+    format!(r#"# .fcrc configuration for find-context
+# This file configures the find-context tool for this NovelEnv project
+
+# Aliases for the `profile` subcommand
+[profile.aliases]
+{}
+
+# LLM CLI configuration for dump-episode-info
+[tools.llm_cli]
+command = "claude"
+prompt_flag = "--prompt"
+
+# Dump settings for episode index generation
+[dump_settings]
+input_dir = "episode"
+output_file = "episode_index.json"
+
+# Project metadata
+[project]
+name = "{}"
+type = "{}"
+genre = "{}"
+created = "{}"
+"#, profile_aliases, config.name, config.project_type, config.genre, config.created)
 }
 
 fn generate_always_md(config: &ProjectConfig) -> String {
