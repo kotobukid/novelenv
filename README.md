@@ -95,7 +95,7 @@ novel dump episodes
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/yourusername/novelenv.git
+git clone https://github.com/kotobukid/novelenv.git
 cd novelenv
 
 # インストールスクリプトを実行
