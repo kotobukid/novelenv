@@ -2,7 +2,8 @@ use clap::Parser;
 use dialoguer::{Input, Select};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::env;
 
 #[derive(Parser)]
 #[command(name = "novel-init")]
@@ -103,7 +104,9 @@ fn create_project_structure(config: &ProjectConfig) -> Result<(), Box<dyn std::e
         "summary",
         "official",
         "writing_style",
-        ".novelenv"
+        ".novelenv",
+        ".claude",
+        ".claude/commands"
     ];
     
     for dir in &directories {
@@ -178,6 +181,9 @@ novel dump episodes
     // writing_style/always.mdを作成
     let always_md_content = generate_always_md(config);
     fs::write(format!("{}/writing_style/always.md", config.name), always_md_content)?;
+    
+    // カスタムスラッシュコマンドをコピー
+    copy_custom_commands(config)?;
     
     Ok(())
 }
@@ -317,4 +323,94 @@ fn generate_always_md(config: &ProjectConfig) -> String {
         _ => "- プロジェクトの特色を活かした文体\n- 読者に親しみやすい表現\n- 一貫性のある文体"
     }
 )
+}
+
+fn copy_custom_commands(config: &ProjectConfig) -> Result<(), Box<dyn std::error::Error>> {
+    // NovelEnvのメインディレクトリを探す
+    let novelenv_commands_dir = find_novelenv_commands_dir();
+    
+    if let Some(source_dir) = novelenv_commands_dir {
+        println!("📝 カスタムスラッシュコマンドをコピー中...");
+        
+        // ソースディレクトリ内の.mdファイルをすべてコピー
+        if let Ok(entries) = fs::read_dir(&source_dir) {
+            let mut copied_count = 0;
+            
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    
+                    if path.extension().map_or(false, |ext| ext == "md") {
+                        if let Some(filename) = path.file_name() {
+                            let dest_path = format!("{}/.claude/commands/{}", 
+                                config.name, 
+                                filename.to_string_lossy());
+                            
+                            if let Err(e) = fs::copy(&path, &dest_path) {
+                                eprintln!("⚠️  コマンドファイル {} のコピーに失敗: {}", 
+                                    filename.to_string_lossy(), e);
+                            } else {
+                                copied_count += 1;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if copied_count > 0 {
+                println!("✅ {} 個のカスタムコマンドをコピーしました", copied_count);
+            } else {
+                println!("📝 コピーするカスタムコマンドが見つかりませんでした");
+            }
+        }
+    } else {
+        // NovelEnvのコマンドディレクトリが見つからない場合はスキップ
+        println!("📝 NovelEnvのカスタムコマンドディレクトリが見つかりません（スキップ）");
+    }
+    
+    Ok(())
+}
+
+fn find_novelenv_commands_dir() -> Option<PathBuf> {
+    // 実行ファイルから相対的に探す
+    if let Ok(current_exe) = env::current_exe() {
+        if let Some(exe_dir) = current_exe.parent() {
+            // インストール済み環境: ~/.local/bin から上位ディレクトリを探す
+            let installed_commands = exe_dir
+                .parent()? // .local
+                .parent()? // home
+                .join("projects")
+                .join("novel")
+                .join(".claude")
+                .join("commands");
+            
+            if installed_commands.exists() {
+                return Some(installed_commands);
+            }
+            
+            // 開発環境: cli-tools/novel-init/target/release から探す
+            if let Some(cli_tools_dir) = exe_dir
+                .parent() // target
+                .and_then(|p| p.parent()) // release
+                .and_then(|p| p.parent()) // novel-init
+                .and_then(|p| p.parent()) // cli-tools
+            {
+                let dev_commands = cli_tools_dir
+                    .join(".claude")
+                    .join("commands");
+                
+                if dev_commands.exists() {
+                    return Some(dev_commands);
+                }
+            }
+        }
+    }
+    
+    // フォールバック: 現在のディレクトリから探す
+    let fallback_commands = PathBuf::from(".claude/commands");
+    if fallback_commands.exists() {
+        return Some(fallback_commands);
+    }
+    
+    None
 }
