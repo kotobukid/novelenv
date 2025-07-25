@@ -284,15 +284,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a creative writing project managed by NovelEnv v2.
 
+**🚨 IMPORTANT: You are working inside a NovelEnv v2 project directory. All tool commands must use the unified `novel` CLI. Do NOT use direct paths to `cli-tools/` or `target/release/` - these will fail in this context.**
+
 ## Available Commands
 
-All commands are prefixed with `novel`:
+**IMPORTANT: This is a NovelEnv v2 project. Always use the `novel` command, never direct tool paths.**
+
+All commands must be prefixed with `novel`:
 
 - `novel find-context profile <name>` - Find character profile
 - `novel find-context episode --character <name>` - Find episodes by character
 - `novel weave serve --port 3000` - Start the context weaver UI
 - `novel weave resolve <id>` - Resolve narrative context
 - `novel dump episodes` - Generate episode index
+
+**Do NOT use direct tool paths like:**
+- ❌ `./cli-tools/find-context/target/release/find-context`
+- ❌ `./cli-tools/context-weaver/target/release/weaver`
+- ❌ Any path containing `cli-tools/` or `target/release/`
+
+**Always use the unified `novel` command instead:**
+- ✅ `novel find-context`
+- ✅ `novel weave`
+- ✅ `novel dump`
 
 ## Repository Structure
 
@@ -325,13 +339,16 @@ Do **not** use general-purpose search tools like `grep`, `rg`, `glob`, or `find`
 - **If the tool returns content**: Use that content as the sole correct answer.
 - **If the tool returns "not found"**: Do **not** search further. Report immediately that the information was not found.
 
-**Usage Examples:**
+**Usage Examples (always use `novel` command):**
 ```bash
-# Character profile search
+# Character profile search - CORRECT
 novel find-context profile <character_name>
 
-# Episode search by character
+# Episode search by character - CORRECT  
 novel find-context episode --character <character_name>
+
+# WRONG - Do NOT use direct paths like this:
+# ❌ ./cli-tools/find-context/target/release/find-context profile <character_name>
 ```
 
 ## Important Notes
@@ -340,6 +357,8 @@ novel find-context episode --character <character_name>
 - The focus is on narrative consistency.
 - When using the Task tool to generate content, always report the exact filename created.
 - **ALWAYS use `novel find-context` for character and context searches - never use direct file access tools**
+- **CRITICAL: This is a NovelEnv v2 managed project. NEVER attempt to run tools directly from `cli-tools/` paths**
+- **ONLY use the `novel` command for all tool operations within this project**
 
 ## Project Settings
 
