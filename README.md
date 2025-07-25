@@ -14,7 +14,8 @@ project/
 ├── episode/              # ストーリーエピソードとチャプター
 ├── scene_sketch/         # 生成されたシーンドラフトとスニペット
 ├── summary/              # エピソード要約
-├── official/             # 世界設定、ルール、コンセプト文書
+├── environment/          # 世界設定、環境設定
+├── notes/               # 概念、ギミック、技術説明
 ├── writing_style/        # 文体ガイドライン
 ├── cli-tools/           # 専用コマンドラインユーティリティ
 └── episode_index.json   # 生成されたエピソードメタデータインデックス
@@ -133,7 +134,8 @@ novel dump episodes
 
 ## 設定
 
-プロジェクトはツール設定に`find_context.toml`設定ファイルを使用します:
+プロジェクトはツール設定に`find_context.toml`設定ファイルを使用します。
+設定例は`find_context.toml.example`を参照してください。
 
 ```toml
 # キャラクタープロファイルエイリアス

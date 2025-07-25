@@ -1,0 +1,54 @@
+# find_context.toml - Configuration example for find-context tool
+# This is an example configuration file. Copy this to 'find_context.toml' and customize for your project.
+
+# Character profile aliases
+# Map short names or nicknames to actual file paths
+[profile.aliases]
+# Japanese names example
+"アベル" = "character_profile/アベル.md"
+"ハンナ" = "character_profile/ハンナ.md"
+"主人公" = "character_profile/protagonist.md"
+
+# English names example  
+"alice" = "character_profile/Alice_Wonderland.md"
+"bob" = "character_profile/Bob_Builder.md"
+
+# You can use various alias patterns:
+"MC" = "character_profile/main_character.md"          # Abbreviations
+"悪役1" = "character_profile/villain_dragon.md"      # Role-based aliases
+"竜の王" = "character_profile/villain_dragon.md"     # Same file, multiple aliases
+
+# LLM CLI configuration for dump-episode-info tool
+[tools.llm_cli]
+# Command to invoke the LLM (claude, gpt, gemini, etc.)
+command = "claude"
+# Flag to pass the prompt (--prompt, -p, etc.)
+prompt_flag = "--prompt"
+
+# Alternative LLM configurations:
+# command = "openai"
+# prompt_flag = "-p"
+
+# Dump settings for episode index generation
+[dump_settings]
+# Directory containing episode markdown files
+input_dir = "episode"
+# Output file for the generated episode index
+output_file = "episode_index.json"
+
+# Project metadata (optional but recommended)
+[project]
+name = "My Novel Project"
+type = "長編小説"
+genre = "ファンタジー"
+created = "2024-01-01"
+
+# Future expansion examples (not yet implemented):
+# [tools.other_tool]
+# config = "value"
+# 
+# [integration.google_docs]
+# folder_id = "your-folder-id"
+# 
+# [search.settings]
+# ignore_dirs = [".git", "node_modules", ".novelenv"]
