@@ -34,6 +34,15 @@ output_file = "episode_index.json"
 
 ## Usage
 
+### NovelEnv統合CLI経由（推奨）
+
+```bash
+# NovelEnvプロジェクト内で実行
+novel dump episodes
+```
+
+### 直接実行
+
 プロジェクトルートから以下のコマンドを実行：
 
 ```bash

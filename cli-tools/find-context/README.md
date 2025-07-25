@@ -6,7 +6,19 @@
 
 ## 2. Command Structure
 
-The tool utilizes a subcommand-based architecture.
+The tool utilizes a subcommand-based architecture and can be used directly or via NovelEnv integrated CLI.
+
+### NovelEnv Integration (Recommended)
+
+```bash
+# Character profile search
+novel find-context profile <alias>
+
+# Episode search by character
+novel find-context episode --character <name>
+```
+
+### Direct Usage
 
 ```sh
 find-context <subcommand> [arguments...]

@@ -26,7 +26,19 @@ Context Weaver は、創作プロジェクト向けのナラティブコンテ�
 
 ## Usage
 
-### Web UI Server の起動
+### NovelEnv統合CLI経由（推奨）
+
+```bash
+# Web UI Server の起動
+novel weave serve --port 3000
+
+# ナラティブ解決
+novel weave resolve <NARRATIVE_ID>
+```
+
+### 直接実行
+
+#### Web UI Server の起動
 
 ```bash
 # From project root directory
@@ -44,7 +56,7 @@ Context Weaver は、創作プロジェクト向けのナラティブコンテ�
 - `--port, -p`: サーバーポート（デフォルト: 3000）
 - `--path, -P`: プロジェクトルートパス（デフォルト: 現在のディレクトリ）
 
-### CLI からのナラティブ解決
+#### CLI からのナラティブ解決
 
 ```bash
 # From project root directory
