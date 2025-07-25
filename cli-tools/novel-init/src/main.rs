@@ -139,7 +139,8 @@ fn create_project_structure(config: &ProjectConfig, selected_styles: &[String], 
         "episode", 
         "scene_sketch",
         "summary",
-        "official",
+        "environment",      // official → environment (作品世界設定)
+        "notes",           // 新規追加 (概念・ギミック・技術説明)
         "writing_style",
         ".novelenv",
         ".claude",
@@ -245,7 +246,8 @@ novel dump episodes
 - `episode/` - エピソード・章
 - `scene_sketch/` - シーンスケッチ・下書き
 - `summary/` - 要約・あらすじ
-- `official/` - 世界観・設定資料
+- `environment/` - 世界観・環境設定
+- `notes/` - 概念・ギミック・技術説明
 - `writing_style/` - 文体・スタイルガイド
 "#, config.name, config.description, config.project_type, config.genre, config.created);
     
@@ -312,14 +314,84 @@ All commands must be prefixed with `novel`:
 
 ```
 {}/
-├── character_profile/     # Character profiles
-├── episode/              # Story episodes or chapters
+├── character_profile/     # Character profiles and development
+├── episode/              # Story episodes and chapters
 ├── scene_sketch/         # Generated scene drafts and snippets
-├── summary/              # Summaries of episodes
-├── official/             # World-building, rules, and concept documents
-├── writing_style/        # Writing style guidelines
-└── .novelenv/           # Project configuration
+├── summary/              # Episode summaries and story outlines
+├── environment/          # World-building and environmental settings
+├── notes/               # Concepts, mechanisms, and technical explanations
+├── writing_style/        # Writing style guidelines and templates
+└── .novelenv/           # NovelEnv v2 configuration
 ```
+
+## Directory Usage Guidelines
+
+When users ask you to create or save content, guide them to the appropriate directories:
+
+### **Character Development (`character_profile/`)**
+- **Character profiles and basic information**: Main character data, backstories, relationships
+- **Character development arcs**: Evolution tracking, personality changes over time
+- **Character reference sheets**: Physical descriptions, mannerisms, speech patterns
+- **Relationship charts**: Character connections, family trees, social networks
+- **Character interviews**: In-depth personality exploration through Q&A format
+
+**This directory is your go-to for any character-related content. LLMs should freely create and update character files here.**
+
+### **Story Content**
+
+#### **Episodes & Chapters (`episode/`)**
+- **Main story content**: Published chapters, complete episodes
+- **Story arcs**: Multi-part storylines, season structures
+- **Narrative sequences**: Connected story events, plot progressions
+- **Final drafts**: Polished content ready for publication
+
+#### **Scene Sketches (`scene_sketch/`)**
+- **Creative experiments**: "What if" scenarios, alternative scenes
+- **Scene drafts**: Rough versions before integration into episodes
+- **Dialogue practice**: Character conversation development
+- **Atmospheric pieces**: Setting mood, tension building exercises
+- **Inspiration captures**: Spontaneous creative moments, fragment collections
+
+#### **Summaries (`summary/`)**
+- **Episode summaries**: Concise plot recaps for LLM context
+- **Story outlines**: Plot progression maps, story structure planning
+- **Character arc summaries**: Development tracking across episodes
+- **World state updates**: Changes in setting, politics, relationships between episodes
+
+### **World Building & Documentation**
+
+#### **Environment Settings (`environment/`)**
+- **Physical locations**: Cities, buildings, landscapes, geographical features
+- **World rules**: Physics, magic systems, technological limitations
+- **Political systems**: Governments, organizations, power structures
+- **Cultural elements**: Traditions, languages, social customs
+- **Environmental conditions**: Climate, seasons, natural phenomena
+
+#### **Conceptual Notes (`notes/`)**
+- **Abstract concepts**: Philosophical themes, symbolic meanings
+- **Technical explanations**: How things work, system mechanics
+- **Design documents**: Game-like mechanics, rule systems
+- **Research materials**: Real-world references, inspiration sources
+- **Meta-commentary**: Author notes, development thoughts
+
+### **Writing Style (`writing_style/`)**
+- **Genre-specific guidelines**: Horror, romance, SF writing techniques
+- **Tone instructions**: Formal, casual, poetic approaches
+- **Technical requirements**: POV rules, tense consistency
+- **Voice development**: Character-specific writing styles
+
+**Always reference `writing_style/always.md` first, then apply genre-specific styles as needed.**
+
+## Content Creation Guidelines
+
+**LLMs should proactively:**
+- Create character profiles when new characters are introduced
+- Generate scene sketches for creative exploration
+- Update summaries after major story events
+- Expand environment details when new locations appear
+- Document new concepts and mechanics in notes
+
+**Always suggest the most appropriate directory and explain why that location suits the content type.**
 
 ## Common Tasks
 
