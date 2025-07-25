@@ -280,11 +280,30 @@ When asked to "generate text" without specific save location instructions:
 - **ALWAYS refer to `writing_style/always.md` for consistent writing style guidelines**.
 - Follow any additional writing style guidelines found in the `writing_style/` directory.
 
+### Character and Context Search
+**IMPORTANT: When searching for context-dependent information (e.g., character profiles, configuration files), you must always use the `novel find-context` tool first.**
+
+Do **not** use general-purpose search tools like `grep`, `rg`, `glob`, or `find` for this purpose initially. The `novel find-context` tool is the single source of truth for resolving project-specific aliases and file structures.
+
+**The Tool's Result is Absolute**
+- **If the tool returns content**: Use that content as the sole correct answer.
+- **If the tool returns "not found"**: Do **not** search further. Report immediately that the information was not found.
+
+**Usage Examples:**
+```bash
+# Character profile search
+novel find-context profile <character_name>
+
+# Episode search by character
+novel find-context episode --character <character_name>
+```
+
 ## Important Notes
 
 - This is a pure content repository; no build, test, or lint commands are expected to exist for the content itself.
 - The focus is on narrative consistency.
 - When using the Task tool to generate content, always report the exact filename created.
+- **ALWAYS use `novel find-context` for character and context searches - never use direct file access tools**
 
 ## Project Settings
 
