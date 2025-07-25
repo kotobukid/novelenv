@@ -78,8 +78,8 @@ for DIR in "${DIRS[@]}"; do
         
         echo -e "${BLUE}  Moving: $REL_PATH${NC}"
         
-        # Use the move-to-project.sh script
-        if "$MOVE_SCRIPT" "$REL_PATH" "$TARGET_PROJECT"; then
+        # Use the move-to-project.sh script (run in subshell to prevent exit from affecting parent)
+        if ( "$MOVE_SCRIPT" "$REL_PATH" "$TARGET_PROJECT" ); then
             ((MOVED_COUNT++))
         else
             echo -e "${RED}  Failed to move: $REL_PATH${NC}"

@@ -84,6 +84,7 @@ ln -s "$FULL_TARGET" "$FULL_SOURCE"
 if [ -L "$FULL_SOURCE" ] && [ -e "$FULL_SOURCE" ]; then
     echo -e "${GREEN}✓ Successfully moved and linked!${NC}"
     ls -la "$FULL_SOURCE"
+    exit 0
 else
     echo -e "${RED}Error: Symlink creation may have failed${NC}"
     exit 1
