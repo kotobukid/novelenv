@@ -175,6 +175,10 @@ novel dump episodes
     
     fs::write(format!("{}/README.md", config.name), readme_content)?;
     
+    // writing_style/always.mdを作成
+    let always_md_content = generate_always_md(config);
+    fs::write(format!("{}/writing_style/always.md", config.name), always_md_content)?;
+    
     Ok(())
 }
 
@@ -222,7 +226,8 @@ All commands are prefixed with `novel`:
 When asked to "generate text" without specific save location instructions:
 - Create files in the `scene_sketch/` directory.
 - Use descriptive names for the `.md` files.
-- Follow any writing style guidelines found in the `writing_style/` directory.
+- **ALWAYS refer to `writing_style/always.md` for consistent writing style guidelines**.
+- Follow any additional writing style guidelines found in the `writing_style/` directory.
 
 ## Important Notes
 
@@ -236,4 +241,80 @@ Genre: {}
 Writing Style: [See writing_style/ directory for specific guidelines]
 Target Audience: [To be defined in official/ directory]
 "#, config.name, config.project_type, config.genre, config.description, config.created, config.name, config.genre)
+}
+
+fn generate_always_md(config: &ProjectConfig) -> String {
+    format!(r#"# 文体ガイドライン - always.md
+
+このファイルは、すべてのテキスト生成時に適用される基本的な文体・スタイルガイドラインを定義します。
+
+## プロジェクト基本情報
+
+- **プロジェクト名**: {}
+- **ジャンル**: {}
+- **種類**: {}
+
+## 基本的な文体設定
+
+### 文体・語り手
+- **語り手**: 三人称視点
+- **時制**: 過去形
+- **敬語**: 基本的に使用しない（会話内は除く）
+
+### 文章の特徴
+- **文の長さ**: 中程度（20-40文字程度）を基本とし、適度に長短を混在
+- **句読点**: 読みやすさを重視し、適切に配置
+- **改行**: 段落は適度に改行し、読みやすさを保つ
+
+## ジャンル別の特徴
+
+{}
+
+## 文章作成時の注意点
+
+### 必須事項
+- 一貫した視点を保つ
+- キャラクターの個性を文体にも反映
+- シーンの雰囲気に応じた文体の調整
+
+### 避けるべき表現
+- 不自然な敬語の混在
+- 視点の混乱（一人称と三人称の混在など）
+- 過度に複雑な文構造
+
+## 特別な設定
+
+### 会話文
+- 「」を使用
+- キャラクターごとの特徴的な話し方を意識
+
+### 描写
+- 五感を意識した具体的な描写
+- 過度に詳細すぎない、適度な情報量
+
+## このファイルの使用方法
+
+このファイルの内容は、以下の場面で参照されます：
+- LLMによるテキスト生成時の基準として
+- 既存テキストの校正・編集時の指針として
+- 新しいライター・協力者への文体説明として
+
+---
+
+*このファイルはプロジェクトの進行に合わせて更新してください。*
+"#, 
+    config.name, 
+    config.genre, 
+    config.project_type,
+    match config.genre.as_str() {
+        "SF" => "- 科学的な用語を適度に使用\n- 未来的・技術的な雰囲気を演出\n- 論理的で明確な文体",
+        "ファンタジー" => "- 詩的で美しい表現を意識\n- 異世界観を表現する独特な語彙\n- 神秘的で幻想的な雰囲気",
+        "ミステリー" => "- 緊張感のある簡潔な文体\n- 論理的で冷静な描写\n- 読者の推理を促す情報の提示",
+        "恋愛" => "- 感情豊かで繊細な表現\n- 内面描写を重視\n- 美しい情景描写",
+        "ホラー" => "- 不安感を煽る表現技法\n- 五感に訴える恐怖描写\n- 短く印象的な文での緊張演出",
+        "歴史" => "- 時代考証を意識した語彙選択\n- 品格のある文体\n- 時代背景に応じた敬語使用",
+        "現代" => "- 自然で親しみやすい文体\n- 現代的な語彙と表現\n- リアリティのある会話",
+        _ => "- プロジェクトの特色を活かした文体\n- 読者に親しみやすい表現\n- 一貫性のある文体"
+    }
+)
 }
