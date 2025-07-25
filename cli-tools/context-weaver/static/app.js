@@ -13,6 +13,36 @@ async function loadFiles() {
     }
 }
 
+async function refreshFiles() {
+    const refreshButton = document.getElementById('refresh-files');
+    
+    try {
+        // Add refreshing animation
+        refreshButton.classList.add('refreshing');
+        refreshButton.disabled = true;
+        
+        const response = await fetch('/api/files/refresh', {
+            method: 'POST'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to refresh files');
+        }
+        
+        files = await response.json();
+        renderFileTree();
+        
+        console.log('File list refreshed successfully');
+    } catch (error) {
+        console.error('Failed to refresh files:', error);
+        alert('Failed to refresh file list. Please try again.');
+    } finally {
+        // Remove refreshing animation
+        refreshButton.classList.remove('refreshing');
+        refreshButton.disabled = false;
+    }
+}
+
 async function loadNarratives() {
     try {
         const response = await fetch('/api/narratives');
@@ -518,6 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadNarratives();
     setupContextList();
 
+    document.getElementById('refresh-files').addEventListener('click', refreshFiles);
     document.getElementById('save-narrative').addEventListener('click', saveNarrative);
     document.getElementById('save-as-new-narrative').addEventListener('click', saveAsNewNarrative);
     

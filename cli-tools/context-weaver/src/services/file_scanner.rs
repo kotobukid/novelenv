@@ -23,6 +23,9 @@ impl FileScanner {
     }
 
     pub fn scan(&self) -> Result<()> {
+        // Clear existing file map before scanning
+        self.file_map.clear();
+        
         let wvignore_path = self.root_path.join(".wvignore");
         let mut gitignore = GitignoreBuilder::new(&self.root_path);
 

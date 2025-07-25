@@ -21,6 +21,20 @@ pub async fn list_files(State(scanner): State<FileScanner>) -> impl IntoResponse
     Json(files)
 }
 
+pub async fn refresh_files(State(scanner): State<FileScanner>) -> Result<impl IntoResponse, StatusCode> {
+    match scanner.scan() {
+        Ok(_) => {
+            let files: Vec<FileInfo> = scanner
+                .get_file_map()
+                .iter()
+                .map(|entry| entry.value().clone())
+                .collect();
+            Ok(Json(files))
+        }
+        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    }
+}
+
 pub async fn create_narrative(
     State(store): State<NarrativeStore>,
     Json(narrative): Json<NarrativeData>,

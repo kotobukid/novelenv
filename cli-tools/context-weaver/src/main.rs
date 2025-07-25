@@ -106,6 +106,7 @@ async fn serve(port: u16, path: PathBuf) -> Result<()> {
 
     let app = Router::new()
         .route("/api/files", get(handlers::list_files))
+        .route("/api/files/refresh", post(handlers::refresh_files))
         .with_state(scanner.clone())
         .route("/api/narratives", get(handlers::list_narratives))
         .route("/api/narratives", post(handlers::create_narrative))

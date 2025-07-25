@@ -43,6 +43,55 @@ h2 {
     font-size: 1.2em;
 }
 
+.file-explorer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.file-explorer-header h2 {
+    margin: 0;
+}
+
+.refresh-button {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 6px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.refresh-button:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+}
+
+.refresh-button:active {
+    background: #dee2e6;
+    transform: scale(0.95);
+}
+
+.refresh-button svg {
+    transition: transform 0.3s ease;
+}
+
+.refresh-button.refreshing svg {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 .tree-view {
     max-height: 600px;
     overflow-y: auto;
