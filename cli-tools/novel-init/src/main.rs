@@ -54,7 +54,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // 非対話モードでは always.md のみ、サンプルキャラクター無し
         (config, vec!["always.md".to_string()], false)
     } else {
-        interactive_setup(&cli.name)?
+        // 対話セットアップを試みて、端末エラーの場合は非対話モードにフォールバック
+        match interactive_setup(&cli.name) {
+            Ok(result) => result,
+            Err(_) => {
+                println!("📝 端末接続エラーのため、デフォルト設定でプロジェクトを作成します");
+                let config = ProjectConfig {
+                    name: cli.name.clone(),
+                    project_type: "novel".to_string(),
+                    genre: "その他".to_string(),
+                    description: "新しい小説プロジェクト".to_string(),
+                    created: chrono::Utc::now().format("%Y-%m-%d").to_string(),
+                };
+                (config, vec!["always.md".to_string()], false)
+            }
+        }
     };
     
     create_project_structure(&config, &selected_styles, import_characters)?;
@@ -539,24 +553,31 @@ fn select_writing_styles(available_styles: &[WritingStyleFile]) -> Result<Vec<St
         defaults[pos] = true;
     }
     
-    let selections = MultiSelect::new()
+    match MultiSelect::new()
         .with_prompt("含めるファイルを選択")
         .items(&items)
         .defaults(&defaults)
-        .interact()?;
-    
-    let selected_files: Vec<String> = selections.iter()
-        .map(|&i| available_styles[i].filename.clone())
-        .collect();
-    
-    // always.mdが選択されていない場合は強制的に追加
-    let mut result = selected_files;
-    if !result.contains(&"always.md".to_string()) {
-        result.insert(0, "always.md".to_string());
-        println!("📝 always.md は必須のため自動的に含まれます");
+        .interact() 
+    {
+        Ok(selections) => {
+            let selected_files: Vec<String> = selections.iter()
+                .map(|&i| available_styles[i].filename.clone())
+                .collect();
+            
+            // always.mdが選択されていない場合は強制的に追加
+            let mut result = selected_files;
+            if !result.contains(&"always.md".to_string()) {
+                result.insert(0, "always.md".to_string());
+                println!("📝 always.md は必須のため自動的に含まれます");
+            }
+            
+            Ok(result)
+        }
+        Err(_) => {
+            println!("📝 writing_style選択をスキップします");
+            Ok(vec!["always.md".to_string()])
+        }
     }
-    
-    Ok(result)
 }
 
 fn find_novelenv_writing_style_dir() -> Option<PathBuf> {
@@ -647,12 +668,18 @@ fn copy_selected_writing_styles(config: &ProjectConfig, selected_styles: &[Strin
 }
 
 fn ask_sample_characters_import() -> Result<bool, Box<dyn std::error::Error>> {
-    let import = Confirm::new()
+    // 端末接続エラーの場合はデフォルト値を使用
+    match Confirm::new()
         .with_prompt("サンプルキャラクターの情報をインポートしますか？")
         .default(true)
-        .interact()?;
-    
-    Ok(import)
+        .interact() 
+    {
+        Ok(import) => Ok(import),
+        Err(_) => {
+            println!("📝 非対話環境のため、サンプルキャラクターのインポートはスキップします");
+            Ok(false)
+        }
+    }
 }
 
 fn copy_sample_characters(config: &ProjectConfig) -> Result<(), Box<dyn std::error::Error>> {

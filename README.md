@@ -1,6 +1,6 @@
-# 小説創作プロジェクト
+# NovelEnv v2 - 小説創作環境管理システム
 
-構造化された原稿管理、キャラクター開発、およびナラティブコンテキスト管理のための専用コマンドラインツールを備えた包括的な創作プロジェクトリポジトリです。
+Python venvのような環境切り替え機能と統合CLIツールを提供する、創作プロジェクトの包括的な環境管理システムです。
 
 ## プロジェクト概要
 
@@ -20,7 +20,16 @@ project/
 └── episode_index.json   # 生成されたエピソードメタデータインデックス
 ```
 
-## 機能
+## 主要機能
+
+### NovelEnv v2の新機能
+- **プロジェクト初期化**: インタラクティブなセットアップウィザード
+- **環境切り替え**: Python venv風の環境アクティベーション
+- **統合CLI**: すべてのツールを`novel`コマンドで統一操作
+- **文体管理**: 複数の文体スタイルファイルを選択・管理
+- **サンプルキャラクター**: テンプレートキャラクターのインポート
+
+## コンテンツ管理機能
 
 ### コンテンツ管理
 - **キャラクタープロファイル**: 性格、能力、関係性を含む詳細なキャラクター開発テンプレート
@@ -28,58 +37,50 @@ project/
 - **エピソード管理**: 自動メタデータ抽出によるエピソード追跡
 - **文体ガイドライン**: 一貫した文体のためのスタイルガイド管理
 
-### コマンドラインツール
+### 統合コマンドラインツール
 
-#### 1. Context Weaver（コンテキストウィーバー）
-複雑な創作プロジェクトのためのWebベースのナラティブコンテキスト管理ツール。
+NovelEnv v2では、すべてのツールが`novel`コマンドから統一的にアクセスできます。
 
-**機能:**
-- プロジェクトファイルを閲覧するインタラクティブWebUI
-- ドラッグ&ドロップによるコンテキスト構築
-- ユニークIDでナラティブコンテキストを保存・管理
-- 保存されたコンテキストのCLI解決
+#### 1. プロジェクト初期化
+```bash
+# インタラクティブモード
+novel init my-novel
 
-**使用方法:**
+# 非インタラクティブモード
+novel init my-novel --non-interactive
+```
+
+#### 2. 環境アクティベーション
+```bash
+# 環境をアクティベート
+novel activate my-novel
+
+# 現在のディレクトリをアクティベート
+novel activate .
+```
+
+#### 3. Context Weaver（コンテキストウィーバー）
 ```bash
 # Webサーバー起動
-./cli-tools/context-weaver/target/release/weaver serve --port 3000
+novel weave serve --port 3000
 
-# パス指定（短縮オプション: -p ポート, -P パス）
-./cli-tools/context-weaver/target/release/weaver serve -p 3000 -P /path/to/project
-
-# 保存されたコンテキストを解決
-./cli-tools/context-weaver/target/release/weaver resolve <NARRATIVE_ID>
+# ナラティブコンテキストを解決
+novel weave resolve <NARRATIVE_ID>
 ```
 
-#### 2. Find Context（ファインドコンテキスト）
-エイリアスサポート付きプロジェクト固有コンテンツ検索の統合インターフェース。
-
-**機能:**
-- 名前またはエイリアスによるキャラクタープロファイル検索
-- キャラクター別エピソード検索
-- プロジェクト対応コンテキスト検索
-
-**使用方法:**
+#### 4. Find Context（ファインドコンテキスト）
 ```bash
 # キャラクタープロファイル取得
-./cli-tools/find-context/target/release/find-context profile <character_name>
+novel find-context profile <character_name>
 
 # キャラクターが登場するエピソードを検索
-./cli-tools/find-context/target/release/find-context episode --character <character_name>
+novel find-context episode --character <character_name>
 ```
 
-#### 3. Episode Info Dumper（エピソード情報ダンパー）
-LLM分析を使用したエピソードファイルからの自動メタデータ抽出。
-
-**機能:**
-- エピソードからキャラクター、テーマ、ログラインを抽出
-- 検索可能なJSONインデックス生成
-- LLMを活用したコンテンツ分析
-
-**使用方法:**
+#### 5. Episode Info Dumper（エピソード情報ダンパー）
 ```bash
-cd cli-tools/dump-episode-info
-cargo run
+# エピソード情報をダンプ
+novel dump episodes
 ```
 
 ## はじめに
@@ -90,19 +91,45 @@ cargo run
 - LLM CLIツール（Episode Info DumperにはClaude CLI推奨）
 
 ### インストール
-1. リポジトリをクローン
-2. CLIツールをビルド:
-   ```bash
-   cd cli-tools/context-weaver && cargo build --release
-   cd ../find-context && cargo build --release
-   cd ../dump-episode-info && cargo build --release
-   ```
+
+```bash
+# リポジトリをクローン
+git clone https://github.com/yourusername/novelenv.git
+cd novelenv
+
+# インストールスクリプトを実行
+./install.sh
+
+# PATHを通す（~/.bashrc や ~/.zshrc に追加）
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+インストールスクリプトは以下を実行します：
+- すべてのCLIツールをビルド
+- `~/.local/bin`にシンボリックリンクを作成
+- リビルド時は自動的に最新版が反映される
 
 ### クイックスタート
-1. **コンテンツ閲覧**: `character_profile/`、`episode/`、`official/`ディレクトリを探索
-2. **Context Weaver起動**: WebUIを起動してナラティブコンテキストを作成
-3. **コンテンツ検索**: `find-context`を使用してキャラクターやエピソード情報を素早く検索
-4. **インデックス更新**: 新しいエピソード追加後に`dump-episode-info`を実行
+
+```bash
+# 1. 新規プロジェクトを作成
+novel init my-novel
+
+# 2. プロジェクトに移動
+cd my-novel
+
+# 3. 環境をアクティベート（オプション）
+novel activate .
+
+# 4. キャラクタープロファイルを検索
+novel find-context profile アベル
+
+# 5. Context Weaver WebUIを起動
+novel weave serve --port 3000
+
+# 6. エピソード情報をダンプ
+novel dump episodes
+```
 
 ## 設定
 
