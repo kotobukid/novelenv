@@ -105,7 +105,8 @@ my-novel/
 ├── episode/              # エピソード・章
 ├── scene_sketch/         # シーンスケッチ・下書き
 ├── summary/              # 要約・あらすじ
-├── official/             # 世界観・設定資料
+├── environment/          # 世界設定・環境設定
+├── notes/               # 概念・ギミック・技術説明
 ├── writing_style/        # 文体・スタイルガイド
 │   └── always.md         # 基本文体設定（自動生成）
 ├── .novelenv/           # NovelEnv設定

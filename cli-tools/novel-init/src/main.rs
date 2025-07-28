@@ -294,11 +294,150 @@ This is a creative writing project managed by NovelEnv v2.
 
 All commands must be prefixed with `novel`:
 
-- `novel find-context profile <name>` - Find character profile
-- `novel find-context episode --character <name>` - Find episodes by character
-- `novel weave serve --port 3000` - Start the context weaver UI
-- `novel weave resolve <id>` - Resolve narrative context
-- `novel dump episodes` - Generate episode index
+### find-context - Character and Content Search Tool
+
+The `find-context` tool is your primary method for searching character profiles and episodes. It supports aliases and provides fast, reliable content discovery.
+
+#### Character Profile Search
+
+```bash
+# Basic usage - find character by name
+novel find-context profile <character_name>
+
+# Examples
+novel find-context profile alice          # Find alice.md in character_profile/
+novel find-context profile "田中太郎"      # Japanese names work too
+novel find-context profile protagonist    # Can use aliases defined in find_context.toml
+```
+
+**Features:**
+- Searches `character_profile/` directory for exact matches
+- Supports aliases configured in `find_context.toml`
+- Returns full character profile content
+- Case-sensitive by default
+
+#### Episode Search
+
+```bash
+# Find episodes featuring a specific character
+novel find-context episode --character <character_name>
+
+# Examples
+novel find-context episode --character alice
+novel find-context episode --character "山田花子"
+```
+
+**Requirements:**
+- Requires `episode_index.json` to be generated first
+- Run `novel dump episodes` if search returns no results
+
+### context-weaver - Narrative Context Management
+
+Context Weaver helps you manage complex narrative contexts by combining multiple files into cohesive reference documents.
+
+#### Start Web UI
+
+```bash
+# Start the web interface
+novel weave serve --port <port_number>
+
+# Examples
+novel weave serve --port 3000    # Default port
+novel weave serve --port 8080    # Custom port
+```
+
+**Web UI Features:**
+- Visual file browser with tree view
+- Drag-and-drop interface for building contexts
+- Save narratives with unique IDs
+- Export resolved contexts
+
+#### Resolve Narrative Context
+
+```bash
+# Resolve a saved narrative by ID
+novel weave resolve <narrative_id>
+
+# Example
+novel weave resolve 123e4567-e89b-12d3-a456-426614174000
+```
+
+**Output:**
+- Concatenates all files in the narrative
+- Respects include ranges (if specified)
+- Outputs to stdout for piping or redirection
+
+### dump-episode-info - Episode Index Generator
+
+This tool analyzes all episodes using an LLM to generate searchable metadata.
+
+```bash
+# Generate episode index
+novel dump episodes
+
+# What it does:
+# 1. Scans all files in episode/ directory
+# 2. Uses LLM to extract character appearances and plot summaries
+# 3. Creates/updates episode_index.json
+```
+
+**Important Notes:**
+- Requires LLM CLI tool (configured in find_context.toml)
+- May take several minutes for large projects
+- Required before using `novel find-context episode`
+
+### Common Workflows
+
+#### Finding a Character and Their Story Arc
+
+```bash
+# 1. Get character profile
+novel find-context profile alice
+
+# 2. Generate episode index (if needed)
+novel dump episodes
+
+# 3. Find all episodes with this character
+novel find-context episode --character alice
+```
+
+#### Creating a Complex Context for Writing
+
+```bash
+# 1. Start the context weaver UI
+novel weave serve --port 3000
+
+# 2. In browser:
+#    - Navigate to http://localhost:3000
+#    - Select relevant files (character profiles, episodes, world-building)
+#    - Save as a narrative
+
+# 3. Later, resolve the narrative
+novel weave resolve <narrative-id> > context.md
+```
+
+#### Updating Project Indices
+
+```bash
+# When you've added new episodes or modified existing ones
+novel dump episodes
+
+# This ensures episode searches return current results
+```
+
+### Troubleshooting
+
+**"Command not found" errors:**
+- Ensure you're using `novel` prefix, not direct tool paths
+- Check that NovelEnv is properly installed
+
+**Episode search returns no results:**
+- Run `novel dump episodes` to generate/update the index
+- Check that episodes exist in the `episode/` directory
+
+**Context weaver won't start:**
+- Check if the port is already in use
+- Try a different port number
 
 **Do NOT use direct tool paths like:**
 - ❌ `./cli-tools/find-context/target/release/find-context`
