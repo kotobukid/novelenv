@@ -29,6 +29,7 @@ project/
 - **統合CLI**: すべてのツールを`novel`コマンドで統一操作
 - **文体管理**: 複数の文体スタイルファイルを選択・管理
 - **サンプルキャラクター**: テンプレートキャラクターのインポート
+- **文体スタイル追加機能**: プロジェクト作成後に新しい文体スタイルを追加
 
 ## コンテンツ管理機能
 
@@ -82,6 +83,18 @@ novel find-context episode --character <character_name>
 ```bash
 # エピソード情報をダンプ
 novel dump episodes
+```
+
+#### 6. Writing Style Manager（文体スタイル管理）
+```bash
+# 利用可能なスタイルと導入済みスタイルを表示
+novel style list
+
+# 新しいスタイルをプロジェクトに導入
+novel style install combat_tension --local
+
+# スタイルの詳細情報を表示
+novel style info emotion_focused
 ```
 
 ## はじめに

@@ -18,17 +18,19 @@ novelenv/
 ├── scene_sketch/         # Sample scene drafts and snippets
 ├── writing_style/        # Default writing style templates
 │   ├── always.md         # Base writing guidelines
-│   ├── emotion_focused.md
-│   ├── horror.md
-│   ├── psycho_horror.md
-│   ├── sensual.md
-│   └── splatter_horror.md
+│   ├── combat_heroic.md  # Heroic combat descriptions
+│   ├── combat_tension.md # Tense combat scenes
+│   ├── emotion_focused.md # Emotion-driven narratives
+│   ├── horror.md         # Horror atmosphere
+│   ├── psycho_horror.md  # Psychological horror
+│   ├── sensual.md        # Sensual descriptions
+│   └── splatter_horror.md # Graphic horror
 ├── cli-tools/            # Command-line utilities
 │   ├── context-weaver/   # Narrative context management
 │   ├── dump-episode-info/ # Episode index generator
 │   ├── find-context/     # Context search tool
 │   ├── novel-init/       # Project initialization
-│   └── novelenv/         # Environment setup
+│   └── novelenv/         # Environment setup and style management
 ├── find_context.toml.example  # Configuration template
 ├── install.sh            # Installation script
 ├── run_claude_command.sh # Helper script
@@ -234,3 +236,70 @@ This tool generates the `episode_index.json` file, which is required by the `fin
 
 - **Usage**: `(cd cli-tools/dump-episode-info && cargo run)`
 - **Note**: This command calls an LLM multiple times and may take a while to complete.
+
+### `novel style` Command Usage Guide
+
+The `novel style` command allows you to manage writing style templates in your project. This is particularly useful when NovelEnv is updated with new writing styles after you've created your project.
+
+#### List Available and Installed Styles
+
+```bash
+# Show all available styles with their installation status
+novel style list
+```
+
+Output example:
+```
+📝 Writing Styles:
+
+✅ always (installed)
+🆕 combat_heroic (available)
+✅ combat_tension (installed)
+🆕 emotion_focused (available)
+...
+```
+
+#### Install a New Style
+
+```bash
+# Install a specific writing style to your project
+novel style install combat_tension --local
+
+# The --local flag is currently the default (reserved for future expansion)
+novel style install horror
+```
+
+This copies the specified style template from the global NovelEnv installation to your project's `writing_style/` directory.
+
+#### View Style Information
+
+```bash
+# Display the first 20 lines of a style template
+novel style info combat_tension
+
+# Shows whether it's installed locally or available globally
+novel style info psycho_horror
+```
+
+#### Use Cases
+
+1. **After NovelEnv Update**: When new writing styles are added to NovelEnv, existing projects can adopt them:
+   ```bash
+   # Check what's new
+   novel style list
+   
+   # Install the ones you want
+   novel style install combat_heroic
+   ```
+
+2. **Mid-Project Style Additions**: Add genre-specific styles as your story evolves:
+   ```bash
+   # Your story takes a dark turn
+   novel style install horror
+   novel style install psycho_horror
+   ```
+
+3. **Style Preview**: Check what a style offers before installing:
+   ```bash
+   novel style info splatter_horror
+   ```

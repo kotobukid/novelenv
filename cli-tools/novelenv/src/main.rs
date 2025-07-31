@@ -1,8 +1,9 @@
 use clap::{Parser, Subcommand, Args};
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, exit};
+use std::collections::HashSet;
 
 #[derive(Parser)]
 #[command(name = "novel")]
@@ -25,6 +26,8 @@ enum Commands {
     Weave(WeaveArgs),
     #[command(about = "Dump episode information")]
     Dump(DumpArgs),
+    #[command(about = "Manage writing styles")]
+    Style(StyleArgs),
 }
 
 #[derive(Args)]
@@ -55,6 +58,30 @@ struct WeaveArgs {
 struct DumpArgs {
     #[arg(help = "What to dump (episodes)")]
     target: String,
+}
+
+#[derive(Args)]
+struct StyleArgs {
+    #[command(subcommand)]
+    command: StyleCommands,
+}
+
+#[derive(Subcommand)]
+enum StyleCommands {
+    #[command(about = "List available and installed writing styles")]
+    List,
+    #[command(about = "Install a writing style to the current project")]
+    Install {
+        #[arg(help = "Name of the style to install (without .md extension)")]
+        name: String,
+        #[arg(long, help = "Install to local project (default)")]
+        local: bool,
+    },
+    #[command(about = "Show information about a writing style")]
+    Info {
+        #[arg(help = "Name of the style (without .md extension)")]
+        name: String,
+    },
 }
 
 fn get_tool_path(tool_name: &str) -> PathBuf {
@@ -193,10 +220,268 @@ fn main() {
             cmd_args.extend(args.args);
             execute_tool(tool_path, cmd_args);
         }
-        Commands::Dump(args) => {
+        Commands::Dump(_args) => {
             let tool_path = get_tool_path("dump-episode-info");
             // dump-episode-info は引数なしで実行
             execute_tool(tool_path, vec![]);
+        }
+        Commands::Style(args) => {
+            handle_style_command(args);
+        }
+    }
+}
+
+fn handle_style_command(args: StyleArgs) {
+    match args.command {
+        StyleCommands::List => {
+            list_styles();
+        }
+        StyleCommands::Install { name, local: _ } => {
+            install_style(&name);
+        }
+        StyleCommands::Info { name } => {
+            show_style_info(&name);
+        }
+    }
+}
+
+fn find_novelenv_writing_style_dir() -> Option<PathBuf> {
+    // NovelEnvのwriting_styleディレクトリを探す
+    if let Ok(current_exe) = env::current_exe() {
+        if let Some(exe_dir) = current_exe.parent() {
+            // 開発環境のパスを試す
+            // /home/kotobukid/projects/novelenv/cli-tools/novelenv/target/release/novel から遡る
+            // novel -> release -> target -> novelenv -> cli-tools -> novelenv(root)
+            let mut current = exe_dir;
+            for _ in 0..4 {
+                current = current.parent()?;
+            }
+            let dev_path = current.join("writing_style");
+            
+            if dev_path.exists() {
+                return Some(dev_path);
+            }
+            
+            // インストール済み環境のパスを試す
+            // ~/.local/bin/novel から探す
+            if let Some(parent) = exe_dir.parent() {
+                if let Some(grandparent) = parent.parent() {
+                    let installed_path = grandparent
+                        .join("projects")
+                        .join("novelenv")
+                        .join("writing_style");
+                    
+                    if installed_path.exists() {
+                        return Some(installed_path);
+                    }
+                }
+            }
+        }
+    }
+    
+    None
+}
+
+fn get_local_writing_style_dir() -> Option<PathBuf> {
+    // 現在のディレクトリから上に向かってwriting_styleディレクトリを探す
+    let current_dir = env::current_dir().ok()?;
+    let mut dir = current_dir.as_path();
+    
+    loop {
+        let writing_style_dir = dir.join("writing_style");
+        let novelenv_dir = dir.join(".novelenv");
+        
+        // .novelenvディレクトリがあり、writing_styleディレクトリも存在する場合
+        if novelenv_dir.exists() && writing_style_dir.exists() {
+            return Some(writing_style_dir);
+        }
+        
+        dir = dir.parent()?;
+    }
+}
+
+fn list_styles() {
+    let global_dir = find_novelenv_writing_style_dir();
+    let local_dir = get_local_writing_style_dir();
+    
+    if global_dir.is_none() {
+        eprintln!("❌ NovelEnvのwriting_styleディレクトリが見つかりません");
+        exit(1);
+    }
+    
+    if local_dir.is_none() {
+        eprintln!("❌ NovelEnvプロジェクトディレクトリ内で実行してください");
+        exit(1);
+    }
+    
+    let global_dir = global_dir.unwrap();
+    let local_dir = local_dir.unwrap();
+    
+    // グローバルとローカルのスタイルを収集
+    let global_styles = collect_style_files(&global_dir);
+    let local_styles = collect_style_files(&local_dir);
+    
+    println!("📝 Writing Styles:");
+    println!();
+    
+    // すべてのスタイルをソートして表示
+    let mut all_styles: Vec<_> = global_styles.union(&local_styles).collect();
+    all_styles.sort();
+    
+    for style in all_styles {
+        let is_installed = local_styles.contains(style);
+        let status = if is_installed {
+            "✅"
+        } else {
+            "🆕"
+        };
+        
+        let display_name = style.trim_end_matches(".md");
+        println!("{} {} {}", 
+            status, 
+            display_name,
+            if is_installed { "(installed)" } else { "(available)" }
+        );
+    }
+    
+    println!();
+    println!("💡 新しいスタイルをインストールするには:");
+    println!("   novel style install <style_name>");
+}
+
+fn collect_style_files(dir: &Path) -> HashSet<String> {
+    let mut styles = HashSet::new();
+    
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries {
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                if path.extension().map_or(false, |ext| ext == "md") {
+                    if let Some(filename) = path.file_name() {
+                        styles.insert(filename.to_string_lossy().to_string());
+                    }
+                }
+            }
+        }
+    }
+    
+    styles
+}
+
+fn install_style(name: &str) {
+    let global_dir = find_novelenv_writing_style_dir();
+    let local_dir = get_local_writing_style_dir();
+    
+    if global_dir.is_none() {
+        eprintln!("❌ NovelEnvのwriting_styleディレクトリが見つかりません");
+        exit(1);
+    }
+    
+    if local_dir.is_none() {
+        eprintln!("❌ NovelEnvプロジェクトディレクトリ内で実行してください");
+        exit(1);
+    }
+    
+    let global_dir = global_dir.unwrap();
+    let local_dir = local_dir.unwrap();
+    
+    // .mdを付けてファイル名を構築
+    let filename = if name.ends_with(".md") {
+        name.to_string()
+    } else {
+        format!("{}.md", name)
+    };
+    
+    let source_path = global_dir.join(&filename);
+    let dest_path = local_dir.join(&filename);
+    
+    // ソースファイルの存在確認
+    if !source_path.exists() {
+        eprintln!("❌ スタイル '{}' が見つかりません", name);
+        eprintln!("   利用可能なスタイルを確認するには: novel style list");
+        exit(1);
+    }
+    
+    // 既にインストール済みかチェック
+    if dest_path.exists() {
+        eprintln!("⚠️  スタイル '{}' は既にインストールされています", name);
+        exit(1);
+    }
+    
+    // ファイルをコピー
+    match fs::copy(&source_path, &dest_path) {
+        Ok(_) => {
+            println!("✅ スタイル '{}' をインストールしました", name);
+            println!("   場所: {}", dest_path.display());
+        }
+        Err(e) => {
+            eprintln!("❌ スタイルのインストールに失敗しました: {}", e);
+            exit(1);
+        }
+    }
+}
+
+fn show_style_info(name: &str) {
+    let global_dir = find_novelenv_writing_style_dir();
+    let local_dir = get_local_writing_style_dir();
+    
+    // .mdを付けてファイル名を構築
+    let filename = if name.ends_with(".md") {
+        name.to_string()
+    } else {
+        format!("{}.md", name)
+    };
+    
+    // ローカルを優先して探す
+    let mut style_path = None;
+    let mut location = "";
+    
+    if let Some(ref local) = local_dir {
+        let local_path = local.join(&filename);
+        if local_path.exists() {
+            style_path = Some(local_path);
+            location = " (local)";
+        }
+    }
+    
+    // ローカルになければグローバルを探す
+    if style_path.is_none() {
+        if let Some(ref global) = global_dir {
+            let global_path = global.join(&filename);
+            if global_path.exists() {
+                style_path = Some(global_path);
+                location = " (global)";
+            }
+        }
+    }
+    
+    match style_path {
+        Some(path) => {
+            println!("📝 スタイル情報: {}{}", name, location);
+            println!();
+            
+            // ファイルの最初の20行を読み取って表示
+            match fs::read_to_string(&path) {
+                Ok(content) => {
+                    let lines: Vec<&str> = content.lines().take(20).collect();
+                    for line in lines {
+                        println!("{}", line);
+                    }
+                    
+                    if content.lines().count() > 20 {
+                        println!("\n... (以下省略)");
+                    }
+                }
+                Err(e) => {
+                    eprintln!("❌ ファイルの読み取りに失敗しました: {}", e);
+                    exit(1);
+                }
+            }
+        }
+        None => {
+            eprintln!("❌ スタイル '{}' が見つかりません", name);
+            eprintln!("   利用可能なスタイルを確認するには: novel style list");
+            exit(1);
         }
     }
 }
