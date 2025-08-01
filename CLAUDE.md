@@ -30,7 +30,8 @@ novelenv/
 │   ├── dump-episode-info/ # Episode index generator
 │   ├── find-context/     # Context search tool
 │   ├── novel-init/       # Project initialization
-│   └── novelenv/         # Environment setup and style management
+│   ├── pick-name/        # Character name generator
+│   └── novelenv/         # Environment setup
 ├── find_context.toml.example  # Configuration template
 ├── install.sh            # Installation script
 ├── run_claude_command.sh # Helper script
@@ -303,3 +304,35 @@ novel style info psycho_horror
    ```bash
    novel style info splatter_horror
    ```
+
+### `pick-name` Tool
+
+This tool generates random character names for temporary/mob characters in scene sketches, avoiding common LLM name choices that may feel repetitive.
+
+**Usage via novel command:**
+```bash
+# Fantasy names
+novel pick-name -- --genre fantasy --gender male
+novel pick-name -- --genre fantasy --gender female
+
+# Japanese names  
+novel pick-name -- --genre japanese --gender male
+novel pick-name -- --genre japanese --gender female
+
+# Modern Western names
+novel pick-name -- --genre modern --gender male
+novel pick-name -- --genre modern --gender female
+```
+
+**Direct usage:**
+```bash
+./cli-tools/pick-name/target/release/pick-name --genre fantasy --gender male
+```
+
+**When to use:**
+- For temporary characters in scene sketches
+- When you need a quick name for background characters
+- To avoid repetitive LLM name patterns
+- NOT for main characters (humans should name important characters)
+
+The tool uses curated name lists that exclude commonly overused names and problematic associations identified in `character_profile/character_creation.md`.
