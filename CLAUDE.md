@@ -311,22 +311,28 @@ This tool generates random character names for temporary/mob characters in scene
 
 **Usage via novel command:**
 ```bash
-# Fantasy names
-novel pick-name -- --genre fantasy --gender male
-novel pick-name -- --genre fantasy --gender female
+# Given names only (default)
+novel pick-name -- --genre fantasy --gender male                    # → "セラス"
+novel pick-name -- --genre fantasy --gender female                  # → "エラ"
+novel pick-name -- --genre japanese --gender male                   # → "蓮司"
+novel pick-name -- --genre japanese --gender female                 # → "千晴"
+novel pick-name -- --genre modern --gender male                     # → "Blake"
+novel pick-name -- --genre modern --gender female                   # → "Harper"
 
-# Japanese names  
-novel pick-name -- --genre japanese --gender male
-novel pick-name -- --genre japanese --gender female
-
-# Modern Western names
-novel pick-name -- --genre modern --gender male
-novel pick-name -- --genre modern --gender female
+# Full names (given + family)
+novel pick-name -- --genre fantasy --gender male --format full      # → "セラス ドラゴンハート"
+novel pick-name -- --genre fantasy --gender female --format full    # → "エラ シルバームーン"
+novel pick-name -- --genre japanese --gender male --format full     # → "高瀬 蓮司"
+novel pick-name -- --genre japanese --gender female --format full   # → "蒼井 千晴"
+novel pick-name -- --genre modern --gender male --format full       # → "Blake Johnson"
+novel pick-name -- --genre modern --gender female --format full     # → "Harper Smith"
 ```
 
-**Direct usage:**
+**History management:**
 ```bash
-./cli-tools/pick-name/target/release/pick-name --genre fantasy --gender male
+novel pick-name -- --show-history                     # View recent name usage
+novel pick-name -- --clear-history                    # Clear usage history
+novel pick-name -- --genre fantasy --gender male --ignore-history  # Ignore history
 ```
 
 **When to use:**

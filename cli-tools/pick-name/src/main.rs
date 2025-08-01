@@ -16,6 +16,9 @@ struct Cli {
     #[arg(long, help = "Gender of the name")]
     gender: Option<Gender>,
     
+    #[arg(long, help = "Format of the name (given or full)", default_value = "given")]
+    format: NameFormat,
+    
     #[arg(long, help = "Ignore history and pick any name")]
     ignore_history: bool,
     
@@ -37,6 +40,12 @@ enum Genre {
 enum Gender {
     Male,
     Female,
+}
+
+#[derive(Clone, ValueEnum)]
+enum NameFormat {
+    Given,
+    Full,
 }
 
 fn get_data_path() -> PathBuf {
@@ -74,7 +83,7 @@ fn get_data_path() -> PathBuf {
     exit(1);
 }
 
-fn get_name_file(genre: &Genre, gender: &Gender) -> String {
+fn get_given_name_file(genre: &Genre, gender: &Gender) -> String {
     match (genre, gender) {
         (Genre::Fantasy, Gender::Male) => "fantasy_male.txt".to_string(),
         (Genre::Fantasy, Gender::Female) => "fantasy_female.txt".to_string(),
@@ -83,6 +92,27 @@ fn get_name_file(genre: &Genre, gender: &Gender) -> String {
         (Genre::Modern, Gender::Male) => "modern_western.txt".to_string(),
         (Genre::Modern, Gender::Female) => "modern_western.txt".to_string(),
     }
+}
+
+fn get_family_name_file(genre: &Genre) -> String {
+    match genre {
+        Genre::Fantasy => "fantasy_family.txt".to_string(),
+        Genre::Japanese => "japanese_family.txt".to_string(),
+        Genre::Modern => "modern_family.txt".to_string(),
+    }
+}
+
+fn load_names_from_file(file_path: &PathBuf) -> Vec<String> {
+    let names_content = fs::read_to_string(file_path)
+        .unwrap_or_else(|e| {
+            eprintln!("Error reading name file {}: {}", file_path.display(), e);
+            exit(1);
+        });
+    
+    names_content.lines()
+        .map(|line| line.trim().to_string())
+        .filter(|line| !line.is_empty())
+        .collect()
 }
 
 fn find_project_root() -> Option<PathBuf> {
@@ -217,54 +247,112 @@ fn main() {
     });
     
     let data_path = get_data_path();
-    let name_file = get_name_file(&genre, &gender);
-    let file_path = data_path.join(&name_file);
     
-    let names_content = fs::read_to_string(&file_path)
-        .unwrap_or_else(|e| {
-            eprintln!("Error reading name file {}: {}", file_path.display(), e);
-            exit(1);
-        });
+    // Load given names
+    let given_name_file = get_given_name_file(&genre, &gender);
+    let given_name_path = data_path.join(&given_name_file);
+    let given_names = load_names_from_file(&given_name_path);
     
-    let all_names: Vec<&str> = names_content.lines()
-        .map(|line| line.trim())
-        .filter(|line| !line.is_empty())
-        .collect();
-    
-    if all_names.is_empty() {
-        eprintln!("Error: No names found in {}", file_path.display());
+    if given_names.is_empty() {
+        eprintln!("Error: No given names found in {}", given_name_path.display());
         exit(1);
     }
     
-    let category = get_category_key(&genre, &gender);
-    
-    // Filter out used names unless ignore_history is set
-    let available_names: Vec<&str> = if cli.ignore_history {
-        all_names.clone()
+    // For full name format, also load family names
+    let family_names = if matches!(cli.format, NameFormat::Full) {
+        let family_name_file = get_family_name_file(&genre);
+        let family_name_path = data_path.join(&family_name_file);
+        let names = load_names_from_file(&family_name_path);
+        
+        if names.is_empty() {
+            eprintln!("Error: No family names found in {}", family_name_path.display());
+            exit(1);
+        }
+        
+        Some(names)
     } else {
-        let used_names = get_used_names(&category);
-        all_names.iter()
-            .filter(|name| !used_names.contains(&name.to_string()))
-            .copied()
-            .collect()
-    };
-    
-    // If all names are used, fall back to all names
-    let names_to_use = if available_names.is_empty() {
-        eprintln!("Warning: All names in this category have been used recently. Falling back to full list.");
-        all_names
-    } else {
-        available_names
+        None
     };
     
     let mut rng = rand::thread_rng();
-    let selected_name = names_to_use.choose(&mut rng)
-        .expect("Failed to select random name");
     
-    // Add to history unless ignore_history is set
-    if !cli.ignore_history {
-        add_to_history(&category, selected_name);
-    }
+    // Generate the final name
+    let final_name = match cli.format {
+        NameFormat::Given => {
+            let category = get_category_key(&genre, &gender);
+            
+            // Filter out used given names unless ignore_history is set
+            let available_names: Vec<&String> = if cli.ignore_history {
+                given_names.iter().collect()
+            } else {
+                let used_names = get_used_names(&category);
+                given_names.iter()
+                    .filter(|name| !used_names.contains(name))
+                    .collect()
+            };
+            
+            // If all names are used, fall back to all names
+            let names_to_use = if available_names.is_empty() {
+                eprintln!("Warning: All given names in this category have been used recently. Falling back to full list.");
+                given_names.iter().collect()
+            } else {
+                available_names
+            };
+            
+            let selected_name = names_to_use.choose(&mut rng)
+                .expect("Failed to select random given name");
+            
+            // Add to history unless ignore_history is set
+            if !cli.ignore_history {
+                add_to_history(&category, selected_name);
+            }
+            
+            (*selected_name).clone()
+        }
+        NameFormat::Full => {
+            let family_names = family_names.as_ref().unwrap();
+            let category = format!("{}_full", get_category_key(&genre, &gender));
+            
+            // For full names, we generate a combination and check against history
+            let mut attempts = 0;
+            let max_attempts = 100;
+            
+            let final_full_name = loop {
+                let selected_given = given_names.choose(&mut rng)
+                    .expect("Failed to select random given name");
+                let selected_family = family_names.choose(&mut rng)
+                    .expect("Failed to select random family name");
+                
+                let full_name = match genre {
+                    Genre::Japanese => format!("{} {}", selected_family, selected_given),
+                    _ => format!("{} {}", selected_given, selected_family),
+                };
+                
+                // Check if this combination has been used recently
+                if cli.ignore_history {
+                    break full_name;
+                }
+                
+                let used_names = get_used_names(&category);
+                if !used_names.contains(&full_name) {
+                    break full_name;
+                }
+                
+                attempts += 1;
+                if attempts >= max_attempts {
+                    eprintln!("Warning: Unable to find unused full name combination after {} attempts. Using random combination.", max_attempts);
+                    break full_name;
+                }
+            };
+            
+            // Add to history unless ignore_history is set
+            if !cli.ignore_history {
+                add_to_history(&category, &final_full_name);
+            }
+            
+            final_full_name
+        }
+    };
     
-    println!("{}", selected_name);
+    println!("{}", final_name);
 }

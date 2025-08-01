@@ -391,13 +391,21 @@ novel dump episodes
 This tool generates random character names for temporary/mob characters in scene sketches, avoiding repetitive LLM name patterns and maintaining project-level history to prevent duplicates.
 
 ```bash
-# Basic name generation
-novel pick-name -- --genre fantasy --gender male      # Fantasy male name
-novel pick-name -- --genre fantasy --gender female    # Fantasy female name
-novel pick-name -- --genre japanese --gender male     # Japanese male name
-novel pick-name -- --genre japanese --gender female   # Japanese female name
-novel pick-name -- --genre modern --gender male       # Modern Western name
-novel pick-name -- --genre modern --gender female     # Modern Western name
+# Given names only (default)
+novel pick-name -- --genre fantasy --gender male                    # → "セラス"
+novel pick-name -- --genre fantasy --gender female                  # → "エラ"
+novel pick-name -- --genre japanese --gender male                   # → "蓮司"
+novel pick-name -- --genre japanese --gender female                 # → "千晴"
+novel pick-name -- --genre modern --gender male                     # → "Blake"
+novel pick-name -- --genre modern --gender female                   # → "Harper"
+
+# Full names (given + family)
+novel pick-name -- --genre fantasy --gender male --format full      # → "セラス ドラゴンハート"
+novel pick-name -- --genre fantasy --gender female --format full    # → "エラ シルバームーン"
+novel pick-name -- --genre japanese --gender male --format full     # → "高瀬 蓮司"
+novel pick-name -- --genre japanese --gender female --format full   # → "蒼井 千晴"
+novel pick-name -- --genre modern --gender male --format full       # → "Blake Johnson"
+novel pick-name -- --genre modern --gender female --format full     # → "Harper Smith"
 
 # History management
 novel pick-name -- --show-history                     # View recent name usage
@@ -406,9 +414,11 @@ novel pick-name -- --genre fantasy --gender male --ignore-history  # Ignore hist
 ```
 
 **Features:**
+- **Flexible Format**: Generate given names only or full names (given + family)
 - **Smart History**: Avoids recently used names within the same project
 - **Project-Specific**: History is stored in `.pick-name-history` per project
 - **Auto-Rotation**: Maintains up to 50 recent names, automatically removing older entries
+- **Intelligent Combinations**: Combines names from separate lists for maximum variety
 - **Fallback**: When all names are used, warns and falls back to full list
 
 **When to Use:**
@@ -469,13 +479,17 @@ novel dump episodes
 novel pick-name -- --genre fantasy --gender female
 # Output: "セラフィーナ"
 
-# 2. Use the name in your scene creation
-# (Create scene with セラフィーナ as a background character)
+# 2. Generate a full name for a more formal character
+novel pick-name -- --genre japanese --gender male --format full
+# Output: "高瀬 蓮司"
 
-# 3. Check history if needed
+# 3. Use the names in your scene creation
+# (Create scene with these characters)
+
+# 4. Check history if needed
 novel pick-name -- --show-history
 
-# 4. Clear history if starting a new story arc
+# 5. Clear history if starting a new story arc
 novel pick-name -- --clear-history
 ```
 
