@@ -386,6 +386,43 @@ novel dump episodes
 - May take several minutes for large projects
 - Required before using `novel find-context episode`
 
+### pick-name - Character Name Generator
+
+This tool generates random character names for temporary/mob characters in scene sketches, avoiding repetitive LLM name patterns and maintaining project-level history to prevent duplicates.
+
+```bash
+# Basic name generation
+novel pick-name -- --genre fantasy --gender male      # Fantasy male name
+novel pick-name -- --genre fantasy --gender female    # Fantasy female name
+novel pick-name -- --genre japanese --gender male     # Japanese male name
+novel pick-name -- --genre japanese --gender female   # Japanese female name
+novel pick-name -- --genre modern --gender male       # Modern Western name
+novel pick-name -- --genre modern --gender female     # Modern Western name
+
+# History management
+novel pick-name -- --show-history                     # View recent name usage
+novel pick-name -- --clear-history                    # Clear usage history
+novel pick-name -- --genre fantasy --gender male --ignore-history  # Ignore history
+```
+
+**Features:**
+- **Smart History**: Avoids recently used names within the same project
+- **Project-Specific**: History is stored in `.pick-name-history` per project
+- **Auto-Rotation**: Maintains up to 50 recent names, automatically removing older entries
+- **Fallback**: When all names are used, warns and falls back to full list
+
+**When to Use:**
+- For temporary characters in scene sketches
+- Background characters needing quick names
+- To avoid repetitive LLM naming patterns
+- **NOT for main characters** (humans should name important characters)
+
+**History System:**
+- Names are tracked per genre/gender combination (e.g., fantasy_male, japanese_female)
+- Recently used names are automatically avoided
+- History is project-specific and stored in `.pick-name-history`
+- Use `--ignore-history` to bypass history checking when needed
+
 ### Common Workflows
 
 #### Finding a Character and Their Story Arc
@@ -425,6 +462,23 @@ novel dump episodes
 # This ensures episode searches return current results
 ```
 
+#### Generating Scene Sketches with Fresh Character Names
+
+```bash
+# 1. Generate a fresh character name for your scene
+novel pick-name -- --genre fantasy --gender female
+# Output: "セラフィーナ"
+
+# 2. Use the name in your scene creation
+# (Create scene with セラフィーナ as a background character)
+
+# 3. Check history if needed
+novel pick-name -- --show-history
+
+# 4. Clear history if starting a new story arc
+novel pick-name -- --clear-history
+```
+
 ### Troubleshooting
 
 **"Command not found" errors:**
@@ -439,15 +493,22 @@ novel dump episodes
 - Check if the port is already in use
 - Try a different port number
 
+**Pick-name shows "Not in a novel project directory":**
+- Ensure you're running the command from within a NovelEnv project
+- Check that `.novelenv/` directory exists in the project root
+- Use `--ignore-history` if you need names outside a project context
+
 **Do NOT use direct tool paths like:**
 - ❌ `./cli-tools/find-context/target/release/find-context`
 - ❌ `./cli-tools/context-weaver/target/release/weaver`
+- ❌ `./cli-tools/pick-name/target/release/pick-name`
 - ❌ Any path containing `cli-tools/` or `target/release/`
 
 **Always use the unified `novel` command instead:**
 - ✅ `novel find-context`
 - ✅ `novel weave`
 - ✅ `novel dump`
+- ✅ `novel pick-name`
 
 ## Repository Structure
 

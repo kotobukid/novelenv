@@ -135,6 +135,11 @@ fn get_tool_path(tool_name: &str) -> PathBuf {
                 .join("target")
                 .join("release")
                 .join("dump-episode-info"),
+            "pick-name" => cli_tools_dir
+                .join("pick-name")
+                .join("target")
+                .join("release")
+                .join("pick-name"),
             _ => panic!("Unknown tool: {}", tool_name),
         };
         
