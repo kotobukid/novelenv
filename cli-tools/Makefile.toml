@@ -1,0 +1,80 @@
+[config]
+default_to_workspace = false
+
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+
+[tasks.build-all]
+description = "Build all CLI tools in release mode"
+dependencies = [
+    "build-context-weaver",
+    "build-dump-episode-info", 
+    "build-find-context",
+    "build-novel-init",
+    "build-pick-name"
+]
+
+[tasks.build-context-weaver]
+description = "Build context-weaver in release mode"
+command = "cargo"
+args = ["build", "--release"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/context-weaver"
+
+[tasks.build-dump-episode-info]
+description = "Build dump-episode-info in release mode"
+command = "cargo"
+args = ["build", "--release"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/dump-episode-info"
+
+[tasks.build-find-context]
+description = "Build find-context in release mode"
+command = "cargo"
+args = ["build", "--release"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/find-context"
+
+[tasks.build-novel-init]
+description = "Build novel-init in release mode"
+command = "cargo"
+args = ["build", "--release"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/novel-init"
+
+[tasks.build-pick-name]
+description = "Build pick-name in release mode"
+command = "cargo"
+args = ["build", "--release"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/pick-name"
+
+[tasks.clean-all]
+description = "Clean all CLI tools"
+dependencies = [
+    "clean-context-weaver",
+    "clean-dump-episode-info",
+    "clean-find-context", 
+    "clean-novel-init",
+    "clean-pick-name"
+]
+
+[tasks.clean-context-weaver]
+command = "cargo"
+args = ["clean"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/context-weaver"
+
+[tasks.clean-dump-episode-info]
+command = "cargo"
+args = ["clean"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/dump-episode-info"
+
+[tasks.clean-find-context]
+command = "cargo"
+args = ["clean"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/find-context"
+
+[tasks.clean-novel-init]
+command = "cargo"
+args = ["clean"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/novel-init"
+
+[tasks.clean-pick-name]
+command = "cargo"
+args = ["clean"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/pick-name"
