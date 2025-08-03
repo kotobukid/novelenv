@@ -268,10 +268,36 @@ novel dump episodes
         copy_sample_characters(config)?;
     }
     
+    // プロジェクトタイプに応じたテンプレートをコピー
+    copy_project_templates(config)?;
+    
     Ok(())
 }
 
+fn generate_template_descriptions(project_type: &str) -> (String, String) {
+    match project_type {
+        "連作シリーズ" => (
+            "\n- **Series Planning**: Use `summary/series_plan.md` for overall series structure, episode outlines, and foreshadowing management\n- **Episode Creation**: Use `episode/episode_template.md` as the template for individual episodes\n- **Character Development**: Use `notes/character_arc.md` to track character growth across the series".to_string(),
+            "\n- `summary/series_plan.md` - Overall series structure and episode planning\n- `episode/episode_template.md` - Template for individual episodes  \n- `notes/character_arc.md` - Character development tracking\n- `environment/worldbuilding.md` - World setting and rules\n- `character_profile/character_sheet.md` - Detailed character profiles".to_string()
+        ),
+        "長編小説" => (
+            "\n- **Plot Planning**: Use `summary/plot_outline.md` for overall story structure and three-act planning\n- **Chapter Creation**: Use `episode/chapter_template.md` as the template for individual chapters".to_string(),
+            "\n- `summary/plot_outline.md` - Overall plot structure and planning\n- `episode/chapter_template.md` - Template for individual chapters\n- `environment/worldbuilding.md` - World setting and rules\n- `character_profile/character_sheet.md` - Detailed character profiles".to_string()
+        ),
+        "短編集" => (
+            "\n- **Collection Planning**: Use `summary/story_list.md` for managing multiple stories and their themes\n- **Story Creation**: Use `episode/story_template.md` as the template for individual short stories".to_string(),
+            "\n- `summary/story_list.md` - Collection planning and story management\n- `episode/story_template.md` - Template for individual short stories\n- `environment/worldbuilding.md` - World setting and rules\n- `character_profile/character_sheet.md` - Detailed character profiles".to_string()
+        ),
+        _ => (
+            "\n- No specific templates for this project type".to_string(),
+            "\n- `environment/worldbuilding.md` - World setting and rules (if added)\n- `character_profile/character_sheet.md` - Detailed character profiles (if added)".to_string()
+        )
+    }
+}
+
 fn generate_claude_md(config: &ProjectConfig) -> String {
+    let (template_description, template_locations) = generate_template_descriptions(&config.project_type);
+    
     format!(r#"# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -598,6 +624,17 @@ When users ask you to create or save content, guide them to the appropriate dire
 
 ## Content Creation Guidelines
 
+**🚨 CRITICAL: Use Existing Template Files First**
+
+This project includes pre-configured template files based on the project type. **ALWAYS check for and use existing template files before creating new ones:**
+
+**For {} projects:**{}
+
+**Template File Locations:**
+{}
+
+**Before creating ANY new file, check if a relevant template already exists in the project directories. If a template file exists, USE IT and fill it out rather than creating a new file with a different name.**
+
 **LLMs should proactively:**
 - Create character profiles when new characters are introduced
 - Generate scene sketches for creative exploration
@@ -651,7 +688,7 @@ novel find-context episode --character <character_name>
 Genre: {}
 Writing Style: [See writing_style/ directory for specific guidelines]
 Target Audience: [To be defined in official/ directory]
-"#, config.name, config.project_type, config.genre, config.description, config.created, config.name, config.genre)
+"#, config.name, config.project_type, config.genre, config.description, config.created, config.name, config.project_type, template_description, template_locations, config.genre)
 }
 
 fn generate_find_context_toml(config: &ProjectConfig, import_characters: bool) -> String {
@@ -1161,4 +1198,169 @@ fn find_novelenv_character_profile_dir() -> Option<PathBuf> {
     }
     
     None
+}
+
+fn find_novelenv_templates_dir() -> Option<PathBuf> {
+    // NovelEnvのtemplatesディレクトリを探す
+    if let Ok(current_exe) = env::current_exe() {
+        if let Some(exe_dir) = current_exe.parent() {
+            // インストール済み環境
+            let installed_templates = exe_dir
+                .parent()? // .local
+                .parent()? // home
+                .join("projects")
+                .join("novelenv")
+                .join("templates");
+            
+            if installed_templates.exists() {
+                return Some(installed_templates);
+            }
+            
+            // 開発環境  
+            if let Some(novel_init_dir) = exe_dir
+                .parent() // target
+                .and_then(|p| p.parent()) // novel-init
+            {
+                if let Some(cli_tools_dir) = novel_init_dir.parent() {
+                    if let Some(novelenv_root) = cli_tools_dir.parent() {
+                        let dev_templates = novelenv_root
+                            .join("templates");
+                
+                        if dev_templates.exists() {
+                            return Some(dev_templates);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // フォールバック: プロジェクトルートのtemplatesディレクトリ
+    let fallback = PathBuf::from("templates");
+    if fallback.exists() {
+        return Some(fallback);
+    }
+    
+    None
+}
+
+fn copy_project_templates(config: &ProjectConfig) -> Result<(), Box<dyn std::error::Error>> {
+    let templates_dir = find_novelenv_templates_dir();
+    
+    if let Some(templates_dir) = templates_dir {
+        println!("📄 プロジェクトタイプに応じたテンプレートをコピー中...");
+        
+        // プロジェクトタイプに応じたディレクトリを決定
+        let type_dir = match config.project_type.as_str() {
+            "長編小説" => "novel",
+            "短編集" => "anthology",
+            "連作シリーズ" => "series",
+            _ => return Ok(()), // その他の場合はテンプレートをコピーしない
+        };
+        
+        let type_templates_dir = templates_dir.join(type_dir);
+        let shared_templates_dir = templates_dir.join("shared");
+        
+        let mut copied_count = 0;
+        
+        // プロジェクトタイプ固有のテンプレートをコピー
+        if type_templates_dir.exists() {
+            if let Ok(entries) = fs::read_dir(&type_templates_dir) {
+                for entry in entries {
+                    if let Ok(entry) = entry {
+                        let path = entry.path();
+                        
+                        if path.extension().map_or(false, |ext| ext == "md") {
+                            if let Some(filename) = path.file_name() {
+                                let dest_dir = determine_template_destination(&filename.to_string_lossy());
+                                let dest_path = format!("{}/{}/{}", 
+                                    config.name, 
+                                    dest_dir,
+                                    filename.to_string_lossy());
+                                
+                                // テンプレートの内容を読み込んで変数を置換
+                                if let Ok(content) = fs::read_to_string(&path) {
+                                    let processed_content = process_template_content(&content, config);
+                                    
+                                    if let Err(e) = fs::write(&dest_path, processed_content) {
+                                        eprintln!("⚠️  テンプレートファイル {} のコピーに失敗: {}", 
+                                            filename.to_string_lossy(), e);
+                                    } else {
+                                        copied_count += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 共有テンプレートをコピー
+        if shared_templates_dir.exists() {
+            if let Ok(entries) = fs::read_dir(&shared_templates_dir) {
+                for entry in entries {
+                    if let Ok(entry) = entry {
+                        let path = entry.path();
+                        
+                        if path.extension().map_or(false, |ext| ext == "md") {
+                            if let Some(filename) = path.file_name() {
+                                let dest_dir = determine_template_destination(&filename.to_string_lossy());
+                                let dest_path = format!("{}/{}/{}", 
+                                    config.name, 
+                                    dest_dir,
+                                    filename.to_string_lossy());
+                                
+                                // テンプレートの内容を読み込んで変数を置換
+                                if let Ok(content) = fs::read_to_string(&path) {
+                                    let processed_content = process_template_content(&content, config);
+                                    
+                                    if let Err(e) = fs::write(&dest_path, processed_content) {
+                                        eprintln!("⚠️  共有テンプレートファイル {} のコピーに失敗: {}", 
+                                            filename.to_string_lossy(), e);
+                                    } else {
+                                        copied_count += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        if copied_count > 0 {
+            println!("✅ {} 個のテンプレートファイルをプロジェクトに追加しました", copied_count);
+        }
+    } else {
+        println!("📄 NovelEnvのテンプレートディレクトリが見つかりません（スキップ）");
+    }
+    
+    Ok(())
+}
+
+fn determine_template_destination(filename: &str) -> &'static str {
+    match filename {
+        // summaryディレクトリに配置
+        "series_plan.md" | "plot_outline.md" | "story_list.md" => "summary",
+        // episodeディレクトリに配置
+        "episode_template.md" | "chapter_template.md" | "story_template.md" => "episode",
+        // notesディレクトリに配置
+        "character_arc.md" => "notes",
+        // environmentディレクトリに配置
+        "worldbuilding.md" => "environment",
+        // character_profileディレクトリに配置
+        "character_sheet.md" => "character_profile",
+        // デフォルトはnotesディレクトリ
+        _ => "notes",
+    }
+}
+
+fn process_template_content(content: &str, config: &ProjectConfig) -> String {
+    content
+        .replace("{{PROJECT_NAME}}", &config.name)
+        .replace("{{GENRE}}", &config.genre)
+        .replace("{{DATE}}", &config.created)
+        .replace("{{EPISODE_NUMBER}}", "1")
+        .replace("{{CHAPTER_NUMBER}}", "1")
 }
