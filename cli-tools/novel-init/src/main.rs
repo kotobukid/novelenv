@@ -23,6 +23,12 @@ struct ProjectConfig {
     genre: String,
     description: String,
     created: String,
+    // Series configuration
+    series_type: String,  // short, medium, long, epic
+    total_episodes: usize,
+    // Scale management
+    scale_level: u8,
+    enable_scale_management: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -48,6 +54,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             name: cli.name.clone(),
             project_type: "novel".to_string(),
             genre: "その他".to_string(),
+            series_type: "medium".to_string(),
+            total_episodes: 6,
+            scale_level: 3,
+            enable_scale_management: false,
             description: "新しい小説プロジェクト".to_string(),
             created: chrono::Utc::now().format("%Y-%m-%d").to_string(),
         };
@@ -65,6 +75,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     genre: "その他".to_string(),
                     description: "新しい小説プロジェクト".to_string(),
                     created: chrono::Utc::now().format("%Y-%m-%d").to_string(),
+                    series_type: "medium".to_string(),
+                    total_episodes: 6,
+                    scale_level: 3,
+                    enable_scale_management: false,
                 };
                 (config, vec!["always.md".to_string()], false)
             }
@@ -94,12 +108,69 @@ fn interactive_setup(name: &str) -> Result<(ProjectConfig, Vec<String>, bool), B
         .default(0)
         .interact()?;
     
-    let genres = vec!["SF", "ファンタジー", "ミステリー", "恋愛", "ホラー", "歴史", "現代", "その他"];
+    // シリーズ構成の選択
+    let series_types = vec!["短編（1話完結）", "中編（4-6話）", "長編（12話程度）", "超長編（24話以上）"];
+    let series_type_index = Select::new()
+        .with_prompt("シリーズ構成を選択してください")
+        .items(&series_types)
+        .default(1)
+        .interact()?;
+    
+    let (series_type, total_episodes) = match series_type_index {
+        0 => ("short", 1),
+        1 => ("medium", 6),
+        2 => ("long", 12),
+        3 => ("epic", 24),
+        _ => ("medium", 6),
+    };
+    
+    let genres = vec!["日常系", "青春ドラマ", "SF", "ファンタジー", "ミステリー", "恋愛", "ホラー", "アクション", "シリアス", "その他"];
     let genre_index = Select::new()
         .with_prompt("ジャンルを選択してください")
         .items(&genres)
         .default(0)
         .interact()?;
+    
+    // ジャンルに基づくスケールレベルの推奨値
+    let (recommended_scale, enable_scale_mgmt) = match genre_index {
+        0 => (2, true),  // 日常系
+        1 => (3, true),  // 青春ドラマ
+        7 => (4, false), // アクション
+        8 => (5, false), // シリアス
+        _ => (3, false), // その他
+    };
+    
+    // スケール管理の確認（日常系・青春＋長編の場合は強く推奨）
+    let should_recommend_scale_mgmt = (genre_index <= 1) && (series_type == "long" || series_type == "epic");
+    let enable_scale_management = if should_recommend_scale_mgmt {
+        Confirm::new()
+            .with_prompt("作品スケール管理システムを有効にしますか？（日常系・長編には強く推奨）")
+            .default(true)
+            .interact()?
+    } else {
+        Confirm::new()
+            .with_prompt("作品スケール管理システムを有効にしますか？")
+            .default(enable_scale_mgmt)
+            .interact()?
+    };
+    
+    let scale_level = if enable_scale_management {
+        let scale_options = vec![
+            "レベル1: 日常系（宿題忘れ程度）",
+            "レベル2: 軽いドラマ（部活トラブル程度）",
+            "レベル3: 青春ドラマ（大会失敗程度）",
+            "レベル4: シリアス（退学危機・事故）",
+            "レベル5: 重厚（生死・犯罪レベル）"
+        ];
+        let scale_index = Select::new()
+            .with_prompt("作品のスケールレベルを選択してください")
+            .items(&scale_options)
+            .default((recommended_scale - 1) as usize)
+            .interact()?;
+        (scale_index + 1) as u8
+    } else {
+        recommended_scale
+    };
     
     let description: String = Input::new()
         .with_prompt("プロジェクトの簡単な説明")
@@ -124,6 +195,10 @@ fn interactive_setup(name: &str) -> Result<(ProjectConfig, Vec<String>, bool), B
         genre: genres[genre_index].to_string(),
         description,
         created: chrono::Utc::now().format("%Y-%m-%d").to_string(),
+        series_type: series_type.to_string(),
+        total_episodes,
+        scale_level,
+        enable_scale_management,
     };
     
     Ok((config, selected_styles, import_sample_characters))
@@ -271,6 +346,11 @@ novel dump episodes
     // プロジェクトタイプに応じたテンプレートをコピー
     copy_project_templates(config)?;
     
+    // スケール管理システムのファイルをコピー（有効な場合）
+    if config.enable_scale_management {
+        copy_scale_management_files(config)?;
+    }
+    
     Ok(())
 }
 
@@ -298,6 +378,43 @@ fn generate_template_descriptions(project_type: &str) -> (String, String) {
 fn generate_claude_md(config: &ProjectConfig) -> String {
     let (template_description, template_locations) = generate_template_descriptions(&config.project_type);
     
+    // スケール管理システムのセクションを追加
+    let scale_management_section = if config.enable_scale_management {
+        format!(r#"
+
+## 作品スケール管理システム
+
+このプロジェクトではスケール管理システムが有効になっています。
+
+### 設定値
+- **作品スケールレベル**: {}
+- **シリーズ構成**: {}話構成
+- **最大騒動レベル**: {}
+- **危険ゾーン**: 第{}話付近（全体の70%地点）
+- **緩和話**: 第{}話（危険ゾーンの次話）
+
+### 重要な制約
+- 騒動レベルが作品スケールを超えないよう注意してください
+- 第{}話では感情的な山場を作りつつ、物理的破綻は避けてください
+- 法的問題、損害賠償、キャラクター退場などは避けてください
+
+### 参考ファイル
+- `writing_style/scale_management.md` - スケールレベルの定義
+- `templates/series/series_plan_with_scale.md` - スケール管理付きシリーズ構成
+- `templates/series/incident_scale_checker.md` - 騒動レベルチェッカー
+- `templates/series/episode_generation_prompts.md` - 各話用プロンプト
+"#,
+            config.scale_level,
+            config.total_episodes,
+            config.scale_level,
+            (config.total_episodes as f32 * 0.7).round() as usize,
+            (config.total_episodes as f32 * 0.7).round() as usize + 1,
+            (config.total_episodes as f32 * 0.7).round() as usize,
+        )
+    } else {
+        String::new()
+    };
+    
     format!(r#"# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -310,7 +427,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Description**: {}
 **Created**: {}
 
-This is a creative writing project managed by NovelEnv v2.
+This is a creative writing project managed by NovelEnv v2.{}
 
 **🚨 IMPORTANT: You are working inside a NovelEnv v2 project directory. All tool commands must use the unified `novel` CLI. Do NOT use direct paths to `cli-tools/` or `target/release/` - these will fail in this context.**
 
@@ -688,7 +805,7 @@ novel find-context episode --character <character_name>
 Genre: {}
 Writing Style: [See writing_style/ directory for specific guidelines]
 Target Audience: [To be defined in official/ directory]
-"#, config.name, config.project_type, config.genre, config.description, config.created, config.name, config.project_type, template_description, template_locations, config.genre)
+"#, config.name, config.project_type, config.genre, config.description, config.created, scale_management_section, config.name, config.project_type, template_description, template_locations, config.genre)
 }
 
 fn generate_find_context_toml(config: &ProjectConfig, import_characters: bool) -> String {
@@ -852,6 +969,45 @@ fn copy_custom_commands(config: &ProjectConfig) -> Result<(), Box<dyn std::error
     }
     
     Ok(())
+}
+
+fn find_novelenv_root() -> Option<PathBuf> {
+    // 実行ファイルから相対的に探す
+    if let Ok(current_exe) = env::current_exe() {
+        if let Some(exe_dir) = current_exe.parent() {
+            // 開発環境: cli-tools/novel-init/target/release から探す
+            if let Some(root_dir) = exe_dir
+                .parent() // target
+                .and_then(|p| p.parent()) // novel-init
+                .and_then(|p| p.parent()) // cli-tools
+                .and_then(|p| p.parent()) // novelenv root
+            {
+                if root_dir.join("writing_style").exists() {
+                    return Some(root_dir.to_path_buf());
+                }
+            }
+            
+            // インストール済み環境: ~/.local/bin から上位ディレクトリを探す
+            let installed_root = exe_dir
+                .parent() // .local
+                .and_then(|p| p.parent()) // home
+                .map(|p| p.join("projects").join("novel"));
+            
+            if let Some(root) = installed_root {
+                if root.join("writing_style").exists() {
+                    return Some(root);
+                }
+            }
+        }
+    }
+    
+    // フォールバック: 現在のディレクトリから探す
+    let current_dir = env::current_dir().ok()?;
+    if current_dir.join("writing_style").exists() {
+        return Some(current_dir);
+    }
+    
+    None
 }
 
 fn find_novelenv_commands_dir() -> Option<PathBuf> {
@@ -1242,6 +1398,65 @@ fn find_novelenv_templates_dir() -> Option<PathBuf> {
     }
     
     None
+}
+
+fn copy_scale_management_files(config: &ProjectConfig) -> Result<(), Box<dyn std::error::Error>> {
+    println!("📈 スケール管理システムのファイルをコピー中...");
+    
+    // templatesディレクトリを作成
+    fs::create_dir_all(format!("{}/templates/series", config.name))?;
+    
+    // コピーするファイルのリスト
+    let scale_files = vec![
+        ("writing_style/scale_management.md", "writing_style/scale_management.md"),
+        ("templates/series/series_plan_with_scale.md", "templates/series/series_plan_with_scale.md"),
+        ("templates/series/incident_scale_checker.md", "templates/series/incident_scale_checker.md"),
+        ("templates/series/episode_generation_prompts.md", "templates/series/episode_generation_prompts.md"),
+    ];
+    
+    let source_dir = find_novelenv_root();
+    
+    if let Some(source_dir) = source_dir {
+        for (src_path, dest_path) in scale_files {
+            let source_file = source_dir.join(src_path);
+            let dest_file = format!("{}/{}", config.name, dest_path);
+            
+            if source_file.exists() {
+                // ディレクトリが存在しない場合は作成
+                if let Some(parent) = PathBuf::from(&dest_file).parent() {
+                    fs::create_dir_all(parent)?;
+                }
+                
+                // ファイルをコピーして変数を置換
+                let content = fs::read_to_string(&source_file)?;
+                let customized_content = customize_scale_template(&content, config);
+                fs::write(&dest_file, customized_content)?;
+                
+                println!("  ✓ {} をコピーしました", dest_path);
+            }
+        }
+        
+        println!("✅ スケール管理システムのファイルをコピーしました");
+    } else {
+        println!("📝 スケール管理ファイルが見つかりません（スキップ）");
+    }
+    
+    Ok(())
+}
+
+fn customize_scale_template(content: &str, config: &ProjectConfig) -> String {
+    let danger_zone = (config.total_episodes as f32 * 0.7).round() as usize;
+    let recovery = danger_zone + 1;
+    
+    content
+        .replace("{{SERIES_TITLE}}", &config.name)
+        .replace("{{TOTAL_EPISODES}}", &config.total_episodes.to_string())
+        .replace("{{GENRE}}", &config.genre)
+        .replace("{{SCALE_LEVEL}}", &config.scale_level.to_string())
+        .replace("{{MAX_INCIDENT_LEVEL}}", &config.scale_level.to_string())
+        .replace("{{DANGER_ZONE_EPISODE}}", &danger_zone.to_string())
+        .replace("{{RECOVERY_EPISODE}}", &recovery.to_string())
+        .replace("{{DATE}}", &config.created)
 }
 
 fn copy_project_templates(config: &ProjectConfig) -> Result<(), Box<dyn std::error::Error>> {

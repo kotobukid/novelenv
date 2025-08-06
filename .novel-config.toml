@@ -1,0 +1,97 @@
+# Novel Project Configuration Example
+# This file should be created by `novel init` in each project directory
+
+[project]
+title = "My Novel Project"
+author = "Author Name"
+created = "2024-08-06"
+
+[series]
+# Series type: short (1話), medium (4-6話), long (12話程度), epic (24話以上)
+type = "long"
+episodes = 12
+
+# Genre configuration
+[genre]
+# Genre type: daily, youth, action, serious, fantasy, mystery, romance
+type = "daily"
+# Scale level: 1 (日常系), 2 (軽いドラマ), 3 (青春ドラマ), 4 (シリアス), 5 (重厚)
+scale_level = 2
+# Maximum incident level for this work
+max_incident_level = 3
+
+# Feature flags
+[features]
+# Enable scale management system (recommended for daily/youth + long series)
+scale_management = true
+# Enable tone matrix tracking
+tone_matrix = true
+# Enable incident scale checker
+incident_checker = true
+# Enable review preparation tools
+review_prep = true
+
+# Episode structure configuration
+[episode_structure]
+# Danger zone episode (typically 70% point)
+danger_zone_episode = 9
+# Recovery episode (after danger zone)
+recovery_episode = 10
+# First arc end
+first_arc_end = 4
+# Second arc end
+second_arc_end = 8
+
+# Writing style configuration
+[writing_style]
+# Base style template
+base_template = "always.md"
+# Additional style templates to include
+additional_templates = ["emotion_focused.md", "romantic_comedy.md"]
+
+# Custom commands configuration
+[commands]
+# Enable custom slash commands
+enable_custom_commands = true
+# Available commands (when enabled)
+available_commands = [
+    "consult-series",    # シリーズ構成相談
+    "check-scale",       # 騒動スケールチェック
+    "review-prep",       # レビュー前準備
+    "generate-prompt"    # エピソード生成プロンプト作成
+]
+
+# Scale management rules (when enabled)
+[scale_rules]
+# Warning keywords for each scale level
+level_1_warnings = ["訴訟", "裁判", "逮捕", "死亡", "永久"]
+level_2_warnings = ["損害賠償", "退学", "警察", "重傷"]
+level_3_warnings = ["犯罪", "破産", "不可逆"]
+level_4_warnings = ["生死", "取り返しのつかない"]
+level_5_warnings = [] # No restrictions at level 5
+
+# Default values for common genres
+# These can be used as presets during `novel init`
+[genre_presets.daily]
+scale_level = 2
+max_incident_level = 2
+enable_scale_management = true
+enable_tone_matrix = true
+
+[genre_presets.youth]
+scale_level = 3
+max_incident_level = 3
+enable_scale_management = true
+enable_tone_matrix = true
+
+[genre_presets.action]
+scale_level = 4
+max_incident_level = 4
+enable_scale_management = false
+enable_tone_matrix = false
+
+[genre_presets.serious]
+scale_level = 5
+max_incident_level = 5
+enable_scale_management = false
+enable_tone_matrix = false
