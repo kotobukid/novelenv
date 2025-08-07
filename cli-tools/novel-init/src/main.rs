@@ -250,6 +250,26 @@ fn create_project_structure(config: &ProjectConfig, selected_styles: &[String], 
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.temp
+*.temporary
+
+# Logs
+*.log
+logs/
 "#;
     fs::write(format!("{}/.gitignore", config.name), gitignore_content)?;
     
