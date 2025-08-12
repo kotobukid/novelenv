@@ -1,8 +1,14 @@
 /.idea/
 .claude/settings.local.json
 
+# Machine-generated data directory
+.novelenv/
+
+# Legacy files (for backward compatibility)
 .weaver-narratives.json
 episode_index.json
+.pick-name-history
+find_context.toml
 
 character_profile/*
 episode/*

@@ -40,7 +40,7 @@ pub struct EpisodeInfo {
 fn find_project_root() -> Option<PathBuf> {
     let current_dir = env::current_dir().ok()?;
     for path in current_dir.ancestors() {
-        if path.join("find_context.toml").exists() {
+        if path.join("novelenv.toml").exists() || path.join("find_context.toml").exists() {
             return Some(path.to_path_buf());
         }
     }
@@ -48,18 +48,34 @@ fn find_project_root() -> Option<PathBuf> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let project_root = find_project_root().ok_or("Error: Could not find project root containing find_context.toml file.")?;
-    let config_path = project_root.join("find_context.toml");
+    let project_root = find_project_root().ok_or("Error: Could not find project root containing novelenv.toml or find_context.toml file.")?;
+    
+    // Try novelenv.toml first, then fall back to find_context.toml for backward compatibility
+    let novelenv_config_path = project_root.join("novelenv.toml");
+    let legacy_config_path = project_root.join("find_context.toml");
+    
+    let config_path = if novelenv_config_path.exists() {
+        novelenv_config_path
+    } else if legacy_config_path.exists() {
+        legacy_config_path
+    } else {
+        return Err("No configuration file found (novelenv.toml or find_context.toml)".into());
+    };
 
     let config_bytes = fs::read(&config_path)?;
     let config_str = String::from_utf8(config_bytes)?;
     let config: Config = toml::from_str(&config_str)?;
 
-    let llm_config = config.tools.and_then(|t| t.llm_cli).ok_or("LLM CLI config not found in find_context.toml")?;
-    let dump_settings = config.dump_settings.ok_or("Dump settings not found in find_context.toml")?;
+    let llm_config = config.tools.and_then(|t| t.llm_cli).ok_or("LLM CLI config not found in configuration file")?;
+    let dump_settings = config.dump_settings.ok_or("Dump settings not found in configuration file")?;
 
     let input_pattern = project_root.join(dump_settings.input_dir).join("*.md");
-    let output_path = project_root.join(dump_settings.output_file);
+    let output_path = project_root.join(&dump_settings.output_file);
+    
+    // Create output directory if it doesn't exist
+    if let Some(output_dir) = output_path.parent() {
+        fs::create_dir_all(output_dir)?;
+    }
 
     let mut all_episode_info = Vec::new();
     let json_regex = Regex::new(r"\{[\s\S]*\}")?;

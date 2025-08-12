@@ -1,5 +1,5 @@
-# find_context.toml - Configuration example for find-context tool
-# This is an example configuration file. Copy this to 'find_context.toml' and customize for your project.
+# novelenv.toml - Configuration for NovelEnv CLI tools
+# This is an example configuration file. Copy this to 'novelenv.toml' and customize for your project.
 
 # Character profile aliases
 # Map short names or nicknames to actual file paths
@@ -34,7 +34,7 @@ prompt_flag = "--prompt"
 # Directory containing episode markdown files
 input_dir = "episode"
 # Output file for the generated episode index
-output_file = "episode_index.json"
+output_file = ".novelenv/episode_index.json"
 
 # Project metadata (optional but recommended)
 [project]
@@ -42,6 +42,21 @@ name = "My Novel Project"
 type = "長編小説"
 genre = "ファンタジー"
 created = "2024-01-01"
+
+# Machine-generated data storage configuration
+[storage]
+# Directory for machine-generated files (narratives, history, indexes)
+data_dir = ".novelenv"
+
+# Context weaver settings
+[context_weaver]
+# Narrative storage file (relative to data_dir)
+narratives_file = "narratives.json"
+
+# Name picker settings
+[name_picker]
+# History file (relative to data_dir)
+history_file = "name_history.json"
 
 # Future expansion examples (not yet implemented):
 # [tools.other_tool]

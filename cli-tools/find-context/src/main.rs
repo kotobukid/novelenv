@@ -51,7 +51,7 @@ struct ProfileConfig {
 fn find_project_root() -> Option<PathBuf> {
     let current_dir = env::current_dir().ok()?;
     for path in current_dir.ancestors() {
-        if path.join("find_context.toml").exists() || path.join("character_profile").exists() {
+        if path.join("novelenv.toml").exists() || path.join("find_context.toml").exists() || path.join("character_profile").exists() {
             return Some(path.to_path_buf());
         }
     }
@@ -59,14 +59,21 @@ fn find_project_root() -> Option<PathBuf> {
 }
 
 fn load_config(project_root: &Path) -> Result<Config, Box<dyn std::error::Error>> {
-    let config_path = project_root.join("find_context.toml");
-    if config_path.exists() {
-        let config_bytes = fs::read(&config_path)?;
-        let config_str = String::from_utf8(config_bytes)?;
-        Ok(toml::from_str(&config_str)?)
+    // Try novelenv.toml first, then fall back to find_context.toml for backward compatibility
+    let novelenv_config_path = project_root.join("novelenv.toml");
+    let legacy_config_path = project_root.join("find_context.toml");
+    
+    let config_path = if novelenv_config_path.exists() {
+        novelenv_config_path
+    } else if legacy_config_path.exists() {
+        legacy_config_path
     } else {
-        Ok(Config::default())
-    }
+        return Ok(Config::default());
+    };
+    
+    let config_bytes = fs::read(&config_path)?;
+    let config_str = String::from_utf8(config_bytes)?;
+    Ok(toml::from_str(&config_str)?)
 }
 
 // --- Main Logic ---
@@ -156,11 +163,19 @@ fn handle_episode_command(
     project_root: &Path,
     config: &Config,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let index_path = project_root.join("episode_index.json");
-    if !index_path.exists() {
-        eprintln!("Error: episode_index.json not found. Please run `dump-episode-info` first.");
+    // Try .novelenv/episode_index.json first, then fall back to legacy location
+    let novelenv_index_path = project_root.join(".novelenv").join("episode_index.json");
+    let legacy_index_path = project_root.join("episode_index.json");
+    
+    let index_path = if novelenv_index_path.exists() {
+        novelenv_index_path
+    } else if legacy_index_path.exists() {
+        legacy_index_path
+    } else {
+        eprintln!("Error: episode_index.json not found in .novelenv/ or project root.");
+        eprintln!("Please run `dump-episode-info` first.");
         std::process::exit(1);
-    }
+    };
 
     // Resolve alias: if the provided name is an alias, get the real name. Otherwise, use the provided name.
     let resolved_name = config

@@ -131,7 +131,14 @@ fn find_project_root() -> Option<PathBuf> {
 }
 
 fn get_history_path() -> Option<PathBuf> {
-    find_project_root().map(|root| root.join(".pick-name-history"))
+    find_project_root().map(|root| {
+        let novelenv_dir = root.join(".novelenv");
+        // Create .novelenv directory if it doesn't exist
+        if !novelenv_dir.exists() {
+            let _ = fs::create_dir_all(&novelenv_dir);
+        }
+        novelenv_dir.join("name_history.json")
+    })
 }
 
 fn get_category_key(genre: &Genre, gender: &Gender) -> String {

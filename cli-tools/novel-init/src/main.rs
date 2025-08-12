@@ -305,9 +305,9 @@ node_modules/
 "#;
     fs::write(format!("{}/.wvignore", config.name), wvignore_content)?;
     
-    // find_context.tomlを作成（find-context用設定）
-    let find_context_content = generate_find_context_toml(config, import_characters);
-    fs::write(format!("{}/find_context.toml", config.name), find_context_content)?;
+    // novelenv.tomlを作成（NovelEnv CLI tools用設定）
+    let novelenv_content = generate_novelenv_toml(config, import_characters);
+    fs::write(format!("{}/novelenv.toml", config.name), novelenv_content)?;
     
     // README.mdを作成
     let readme_content = format!(r#"# {}
@@ -470,12 +470,12 @@ novel find-context profile <character_name>
 # Examples
 novel find-context profile alice          # Find alice.md in character_profile/
 novel find-context profile "田中太郎"      # Japanese names work too
-novel find-context profile protagonist    # Can use aliases defined in find_context.toml
+novel find-context profile protagonist    # Can use aliases defined in novelenv.toml
 ```
 
 **Features:**
 - Searches `character_profile/` directory for exact matches
-- Supports aliases configured in `find_context.toml`
+- Supports aliases configured in `novelenv.toml`
 - Returns full character profile content
 - Case-sensitive by default
 
@@ -545,7 +545,7 @@ novel dump episodes
 ```
 
 **Important Notes:**
-- Requires LLM CLI tool (configured in find_context.toml)
+- Requires LLM CLI tool (configured in novelenv.toml)
 - May take several minutes for large projects
 - Required before using `novel find-context episode`
 
@@ -828,7 +828,7 @@ Target Audience: [To be defined in official/ directory]
 "#, config.name, config.project_type, config.genre, config.description, config.created, scale_management_section, config.name, config.project_type, template_description, template_locations, config.genre)
 }
 
-fn generate_find_context_toml(config: &ProjectConfig, import_characters: bool) -> String {
+fn generate_novelenv_toml(config: &ProjectConfig, import_characters: bool) -> String {
     let mut profile_aliases = String::new();
     
     if import_characters {
@@ -843,10 +843,10 @@ fn generate_find_context_toml(config: &ProjectConfig, import_characters: bool) -
 "#);
     }
     
-    format!(r#"# find_context.toml - Configuration for find-context tool
-# This file configures the find-context tool for this NovelEnv project
+    format!(r#"# novelenv.toml - Configuration for NovelEnv CLI tools
+# This file configures the NovelEnv CLI tools for this project
 
-# Aliases for the `profile` subcommand
+# Aliases for the `profile` subcommand (find-context tool)
 [profile.aliases]
 {}
 
@@ -858,7 +858,19 @@ prompt_flag = "--prompt"
 # Dump settings for episode index generation
 [dump_settings]
 input_dir = "episode"
-output_file = "episode_index.json"
+output_file = ".novelenv/episode_index.json"
+
+# Machine-generated data storage configuration
+[storage]
+data_dir = ".novelenv"
+
+# Context weaver settings
+[context_weaver]
+narratives_file = "narratives.json"
+
+# Name picker settings
+[name_picker]
+history_file = "name_history.json"
 
 # Project metadata
 [project]

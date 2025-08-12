@@ -27,7 +27,12 @@ impl NarrativeStore {
     }
 
     fn storage_file(&self) -> PathBuf {
-        self.storage_path.join(".weaver-narratives.json")
+        let novelenv_dir = self.storage_path.join(".novelenv");
+        // Create .novelenv directory if it doesn't exist
+        if !novelenv_dir.exists() {
+            let _ = fs::create_dir_all(&novelenv_dir);
+        }
+        novelenv_dir.join("narratives.json")
     }
 
     fn save_to_disk(&self) -> Result<()> {
