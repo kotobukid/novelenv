@@ -137,7 +137,7 @@ fn get_history_path() -> Option<PathBuf> {
         if !novelenv_dir.exists() {
             let _ = fs::create_dir_all(&novelenv_dir);
         }
-        novelenv_dir.join("name_history.json")
+        novelenv_dir.join("name_history.txt")
     })
 }
 
