@@ -3,7 +3,7 @@
 Generate a scene fragment and save it as a .md file in the scene_sketch/ directory.
 
 Usage: /sketch [narrative_id] [additional description...]
-       /sketch [description of scene, characters, or any other details...]
+/sketch [description of scene, characters, or any other details...]
 
 ## Context Resolution
 
@@ -85,6 +85,21 @@ This command is designed for idea generation. If parameters are not specified, t
 ## Content Structure
 - Always include a brief logline at the beginning.
 - The logline should summarize the scene in 1-2 sentences.
+- **Always include a "作者ノート" (Author's Note) section immediately after the logline, before the main content** to document:
+  - Key narrative choices made during writing
+  - Character development aspects focused on
+  - Thematic elements emphasized
+  - Connection points to other scenes or story elements
+  - Any creative challenges overcome
+
+## Purpose of Author's Notes (Placed at Beginning)
+
+Scene sketches are raw materials for later compilation into finished works. Placing author's notes at the beginning ensures that:
+- LLMs processing the content understand the creative intent before reading the main text
+- Future editing and compilation can build on documented insights from the start
+- The thought process behind character and plot decisions guides subsequent processing
+- Connections between scenes are immediately apparent when reviewing multiple sketches
+- The processing flow aligns with LLM's single-pass reading behavior
 
 ## Important for Task Usage
 When executed via Task tool, always report the exact filename created:
