@@ -236,11 +236,33 @@ The tool is located at `./cli-tools/find-context/target/release/find-context`.
   ```
   *(This will also succeed and print the content of `character_profile/[character_name].md`)*
 
+- **By subdirectory path:** For chapter-specific or context-specific profiles.
+  ```sh
+  ./cli-tools/find-context/target/release/find-context profile "第1章/太郎"
+  ```
+  *(This will look for `character_profile/第1章/太郎.md` first, then fall back to `character_profile/太郎.md` if not found.)*
+
+- **Auto-selection for unique matches:** When searching for a profile that doesn't exist exactly as specified, but there's only one similar profile found, the tool will automatically display that profile:
+  ```sh
+  ./cli-tools/find-context/target/release/find-context profile "ブレード"
+  # Output: Profile 'ブレード' not found. Using 'fair/ブレード':
+  # [displays the content of character_profile/fair/ブレード.md]
+  ```
+
+- **Multiple suggestions:** When multiple similar profiles exist, the tool shows suggestions:
+  ```sh
+  ./cli-tools/find-context/target/release/find-context profile "太郎"
+  # Error: Failed to read profile for '太郎'
+  # Did you mean one of these?
+  #   - 第1章/太郎
+  #   - 第2章/太郎
+  ```
+
 - **When a profile does not exist:**
   ```sh
   ./cli-tools/find-context/target/release/find-context profile non_existent_character
   ```
-  *(This will fail with a "not found" error, and you should report that immediately.)*
+  *(This will fail with a "not found" error, showing tried paths and suggesting similar profiles if any exist.)*
 
 **To find episodes featuring a character:**
 

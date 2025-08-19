@@ -1,9 +1,10 @@
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::io;
 
 // --- Shared Data Structures ---
 #[derive(Serialize, Deserialize, Debug)]
@@ -98,23 +99,120 @@ fn handle_profile_command(
     config: &Config,
     debug: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    // Check if the name is an alias first
     let profile_path_str = config
         .profile
         .as_ref()
         .and_then(|p| p.aliases.get(&name))
         .cloned();
 
-    let mut final_path = if let Some(path_str) = profile_path_str {
-        project_root.join(path_str)
-    } else {
-        project_root
-            .join("character_profile")
-            .join(format!("{name}.md"))
-    };
+    // If it's an alias, use the alias path directly
+    if let Some(path_str) = profile_path_str {
+        let final_path = project_root.join(path_str);
+        if debug {
+            eprintln!("[DEBUG] Using alias path: {}", final_path.display());
+        }
+        return try_read_profile(&final_path, &name, debug);
+    }
+
+    // Otherwise, try to find the profile with subdirectory support
+    let profile_dir = project_root.join("character_profile");
+    let paths_to_try = generate_profile_paths(&profile_dir, &name);
     
     if debug {
-        eprintln!("[DEBUG] Initial path: {}", final_path.display());
+        eprintln!("[DEBUG] Searching for profile: {}", name);
+        eprintln!("[DEBUG] Paths to try:");
+        for path in &paths_to_try {
+            eprintln!("[DEBUG]   - {}", path.display());
+        }
     }
+
+    // Try each path in order
+    for path in &paths_to_try {
+        if path.exists() {
+            if debug {
+                eprintln!("[DEBUG] Found at: {}", path.display());
+            }
+            return try_read_profile(path, &name, debug);
+        }
+    }
+
+    // If not found, check for suggestions
+    if let Some(suggestions) = find_similar_profiles(&profile_dir, &name) {
+        if suggestions.len() == 1 {
+            // If there's exactly one suggestion, use it directly
+            let suggestion = &suggestions[0];
+            let suggested_path = profile_dir.join(format!("{}.md", suggestion));
+            
+            if debug {
+                eprintln!("[DEBUG] Auto-selecting single suggestion: {}", suggestion);
+                eprintln!("[DEBUG] Suggested path: {}", suggested_path.display());
+            }
+            
+            // Show a brief message about the auto-selection
+            eprintln!("Profile '{}' not found. Using '{}':", name, suggestion);
+            return try_read_profile(&suggested_path, suggestion, debug);
+        } else if !suggestions.is_empty() {
+            // Multiple suggestions - show them as before
+            eprintln!("Error: Failed to read profile for '{name}'");
+            eprintln!("Tried the following paths:");
+            for path in &paths_to_try {
+                eprintln!("  - {}", path.display());
+            }
+            eprintln!("\nDid you mean one of these?");
+            for suggestion in suggestions {
+                eprintln!("  - {}", suggestion);
+            }
+            std::process::exit(1);
+        }
+    }
+    
+    // No suggestions found - show error
+    eprintln!("Error: Failed to read profile for '{name}'");
+    eprintln!("Tried the following paths:");
+    for path in &paths_to_try {
+        eprintln!("  - {}", path.display());
+    }
+    
+    std::process::exit(1);
+}
+
+// Helper function to generate possible profile paths based on input
+fn generate_profile_paths(profile_dir: &Path, name: &str) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    
+    // Check if the name contains a path separator
+    if name.contains('/') {
+        // Split the path and construct the full path
+        let parts: Vec<&str> = name.split('/').collect();
+        let mut path = profile_dir.to_path_buf();
+        
+        // Build the subdirectory path
+        for (i, part) in parts.iter().enumerate() {
+            if i < parts.len() - 1 {
+                path.push(part);
+            } else {
+                // Last part is the filename
+                path.push(format!("{}.md", part));
+            }
+        }
+        paths.push(path);
+        
+        // Also try without subdirectory as fallback
+        if let Some(base_name) = parts.last() {
+            paths.push(profile_dir.join(format!("{}.md", base_name)));
+        }
+    } else {
+        // No subdirectory, just simple name
+        paths.push(profile_dir.join(format!("{}.md", name)));
+    }
+    
+    paths
+}
+
+// Helper function to read and print profile content
+fn try_read_profile(path: &Path, name: &str, debug: bool) -> Result<(), Box<dyn std::error::Error>> {
+    let mut final_path = path.to_path_buf();
     
     // Try to canonicalize the path to resolve symlinks
     if let Ok(canonical_path) = final_path.canonicalize() {
@@ -122,8 +220,6 @@ fn handle_profile_command(
             eprintln!("[DEBUG] Canonicalized path: {}", canonical_path.display());
         }
         final_path = canonical_path;
-    } else if debug {
-        eprintln!("[DEBUG] Could not canonicalize path (file may not exist)");
     }
 
     match fs::read_to_string(&final_path) {
@@ -148,14 +244,202 @@ fn handle_profile_command(
             
             // Provide specific error details
             match e.kind() {
-                std::io::ErrorKind::NotFound => eprintln!("Reason: File not found"),
-                std::io::ErrorKind::PermissionDenied => eprintln!("Reason: Permission denied"),
+                io::ErrorKind::NotFound => eprintln!("Reason: File not found"),
+                io::ErrorKind::PermissionDenied => eprintln!("Reason: Permission denied"),
                 _ => eprintln!("Reason: {}", e),
             }
             
             std::process::exit(1);
         }
     }
+}
+
+// Helper function to find similar profile names with improved partial matching
+fn find_similar_profiles(profile_dir: &Path, target: &str) -> Option<Vec<String>> {
+    let target_lower = target.to_lowercase();
+    
+    // Extract base name if target contains path separator
+    let base_name = if target.contains('/') {
+        target.split('/').last().unwrap_or(target)
+    } else {
+        target
+    };
+    let base_name_lower = base_name.to_lowercase();
+    
+    #[derive(Debug, Clone)]
+    struct MatchCandidate {
+        full_name: String,
+        match_score: u8, // Higher score = better match
+    }
+    
+    let mut candidates = Vec::new();
+    
+    // Recursively search for profiles with scoring
+    fn search_dir(dir: &Path, base_name_lower: &str, target_lower: &str, candidates: &mut Vec<MatchCandidate>, prefix: &str) {
+        if let Ok(entries) = fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                
+                if path.is_dir() {
+                    // Recursively search subdirectories
+                    let dir_name = entry.file_name().to_string_lossy().to_string();
+                    let new_prefix = if prefix.is_empty() {
+                        dir_name
+                    } else {
+                        format!("{}/{}", prefix, dir_name)
+                    };
+                    search_dir(&path, base_name_lower, target_lower, candidates, &new_prefix);
+                } else if path.extension().and_then(|s| s.to_str()) == Some("md") {
+                    if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                        let stem_lower = stem.to_lowercase();
+                        let full_name = if prefix.is_empty() {
+                            stem.to_string()
+                        } else {
+                            format!("{}/{}", prefix, stem)
+                        };
+                        let full_name_lower = full_name.to_lowercase();
+                        
+                        // Calculate match score based on different criteria
+                        let mut score = 0u8;
+                        
+                        // Exact base name match (highest priority)
+                        if stem_lower == base_name_lower {
+                            score = 100;
+                        }
+                        // Exact full path match
+                        else if full_name_lower == target_lower {
+                            score = 95;
+                        }
+                        // Base name starts with target
+                        else if stem_lower.starts_with(&base_name_lower) {
+                            score = 80;
+                        }
+                        // Base name ends with target  
+                        else if stem_lower.ends_with(&base_name_lower) {
+                            score = 75;
+                        }
+                        // Target starts with base name
+                        else if base_name_lower.starts_with(&stem_lower) {
+                            score = 70;
+                        }
+                        // Base name contains target
+                        else if stem_lower.contains(&base_name_lower) {
+                            score = 60;
+                        }
+                        // Target contains base name
+                        else if base_name_lower.contains(&stem_lower) {
+                            score = 55;
+                        }
+                        // Full name contains target
+                        else if full_name_lower.contains(&target_lower) {
+                            score = 40;
+                        }
+                        // Target contains full name
+                        else if target_lower.contains(&full_name_lower) {
+                            score = 35;
+                        }
+                        // Character distance match (for typos like 太朗 → 太郎)
+                        else if character_distance(&stem_lower, &base_name_lower) <= 1 {
+                            score = 25;
+                        }
+                        // Fuzzy character match (at least 50% common characters)
+                        else if has_significant_overlap(&stem_lower, &base_name_lower, 0.5) {
+                            score = 20;
+                        }
+                        
+                        // Add to candidates if any match found
+                        if score > 0 {
+                            candidates.push(MatchCandidate {
+                                full_name,
+                                match_score: score,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    search_dir(profile_dir, &base_name_lower, &target_lower, &mut candidates, "");
+    
+    // Sort by match score (descending) and then alphabetically
+    candidates.sort_by(|a, b| {
+        b.match_score.cmp(&a.match_score)
+            .then(a.full_name.cmp(&b.full_name))
+    });
+    
+    // Take top 5 suggestions
+    let suggestions: Vec<String> = candidates.into_iter()
+        .take(5)
+        .map(|c| c.full_name)
+        .collect();
+    
+    if suggestions.is_empty() {
+        None
+    } else {
+        Some(suggestions)
+    }
+}
+
+// Helper function to calculate character-level edit distance (Levenshtein distance)
+fn character_distance(s1: &str, s2: &str) -> usize {
+    let chars1: Vec<char> = s1.chars().collect();
+    let chars2: Vec<char> = s2.chars().collect();
+    
+    let len1 = chars1.len();
+    let len2 = chars2.len();
+    
+    if len1 == 0 {
+        return len2;
+    }
+    if len2 == 0 {
+        return len1;
+    }
+    
+    let mut dp = vec![vec![0; len2 + 1]; len1 + 1];
+    
+    // Initialize first row and column
+    for i in 0..=len1 {
+        dp[i][0] = i;
+    }
+    for j in 0..=len2 {
+        dp[0][j] = j;
+    }
+    
+    // Fill the dp table
+    for i in 1..=len1 {
+        for j in 1..=len2 {
+            if chars1[i - 1] == chars2[j - 1] {
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                dp[i][j] = 1 + std::cmp::min(
+                    std::cmp::min(dp[i - 1][j], dp[i][j - 1]),
+                    dp[i - 1][j - 1]
+                );
+            }
+        }
+    }
+    
+    dp[len1][len2]
+}
+
+// Helper function to check if two strings have significant character overlap
+fn has_significant_overlap(s1: &str, s2: &str, threshold: f32) -> bool {
+    if s1.is_empty() || s2.is_empty() {
+        return false;
+    }
+    
+    let chars1: HashSet<char> = s1.chars().collect();
+    let chars2: HashSet<char> = s2.chars().collect();
+    
+    let intersection = chars1.intersection(&chars2).count();
+    let union = chars1.union(&chars2).count();
+    
+    if union == 0 {
+        return false;
+    }
+    
+    (intersection as f32 / union as f32) >= threshold
 }
 
 fn handle_episode_command(

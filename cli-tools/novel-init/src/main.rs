@@ -459,7 +459,7 @@ All commands must be prefixed with `novel`:
 
 ### find-context - Character and Content Search Tool
 
-The `find-context` tool is your primary method for searching character profiles and episodes. It supports aliases and provides fast, reliable content discovery.
+The `find-context` tool is your primary method for searching character profiles and episodes. It supports aliases, subdirectory organization, and smart auto-selection for fast, reliable content discovery.
 
 #### Character Profile Search
 
@@ -471,13 +471,57 @@ novel find-context profile <character_name>
 novel find-context profile alice          # Find alice.md in character_profile/
 novel find-context profile "田中太郎"      # Japanese names work too
 novel find-context profile protagonist    # Can use aliases defined in novelenv.toml
+
+# Subdirectory support - organize profiles by chapters/arcs
+novel find-context profile "第1章/太郎"   # Find character_profile/第1章/太郎.md
+novel find-context profile "arc1/villain" # Find character_profile/arc1/villain.md
 ```
 
-**Features:**
-- Searches `character_profile/` directory for exact matches
+**Advanced Features:**
+
+**1. Subdirectory Organization**
+- Organize character profiles in subdirectories by chapters, story arcs, or any structure
+- Example structure:
+  ```
+  character_profile/
+  ├── main_characters.md
+  ├── 第1章/
+  │   ├── 太郎.md          # Chapter-specific version
+  │   └── 花子.md
+  └── arc2/
+      └── 新キャラ.md
+  ```
+
+**2. Smart Fallback Search**
+- `novel find-context profile "第1章/太郎"` searches:
+  1. `character_profile/第1章/太郎.md` (exact match)
+  2. `character_profile/太郎.md` (fallback to base directory)
+
+**3. Auto-Selection for Unique Matches**
+- When only one similar profile exists, automatically displays it:
+  ```bash
+  novel find-context profile "ブレード"
+  # Output: Profile 'ブレード' not found. Using 'fair/ブレード':
+  # [displays content of character_profile/fair/ブレード.md]
+  ```
+
+**4. Multiple Suggestions**
+- When multiple similar profiles exist, shows all options:
+  ```bash
+  novel find-context profile "太郎"
+  # Error: Failed to read profile for '太郎'
+  # Did you mean one of these?
+  #   - 第1章/太郎
+  #   - 第2章/太郎
+  ```
+
+**Core Features:**
+- Searches `character_profile/` directory with hierarchical support
 - Supports aliases configured in `novelenv.toml`
 - Returns full character profile content
+- Smart suggestions for similar names
 - Case-sensitive by default
+- Debug mode available with `--debug` flag
 
 #### Episode Search
 
@@ -793,20 +837,45 @@ When asked to "generate text" without specific save location instructions:
 ### Character and Context Search
 **IMPORTANT: When searching for context-dependent information (e.g., character profiles, configuration files), you should try the `novel find-context` tool first.**
 
-The `novel find-context` tool is the preferred method for resolving project-specific aliases and file structures.
+The `novel find-context` tool is the preferred method for resolving project-specific aliases and file structures. It now includes advanced subdirectory support and smart auto-selection features.
 
 **Search Strategy**
 - **First**: Try `novel find-context` for NovelEnv-specific searches
 - **If novel command fails or returns "not found"**: Use general-purpose search tools like `Grep`, `Read`, `Glob` as fallback
 - **If both approaches fail**: Report that the information was not found
 
+**Advanced Search Capabilities:**
+
+**1. Hierarchical Profile Search**
+```bash
+# Chapter/arc-specific profiles
+novel find-context profile "第1章/太郎"    # Searches subdirectories first
+novel find-context profile "arc1/villain"  # Supports any organization structure
+
+# Automatic fallback to base directory if subdirectory version not found
+novel find-context profile "第1章/花子"    # Falls back to character_profile/花子.md
+```
+
+**2. Smart Auto-Selection**
+```bash
+# Single match - automatically displays content
+novel find-context profile "ブレード"      # Auto-selects unique match: fair/ブレード
+
+# Multiple matches - shows suggestions
+novel find-context profile "太郎"         # Lists: 第1章/太郎, 第2章/太郎, etc.
+```
+
 **Usage Examples (always use `novel` command):**
 ```bash
 # Character profile search - CORRECT
 novel find-context profile <character_name>
+novel find-context profile "chapter/character"  # Subdirectory support
 
 # Episode search by character - CORRECT  
 novel find-context episode --character <character_name>
+
+# Debug mode for detailed search information
+novel find-context profile <character_name> --debug
 
 # WRONG - Do NOT use direct paths like this:
 # ❌ ./cli-tools/find-context/target/release/find-context profile <character_name>
