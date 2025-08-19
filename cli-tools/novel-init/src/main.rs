@@ -791,13 +791,14 @@ When asked to "generate text" without specific save location instructions:
 - Follow any additional writing style guidelines found in the `writing_style/` directory.
 
 ### Character and Context Search
-**IMPORTANT: When searching for context-dependent information (e.g., character profiles, configuration files), you must always use the `novel find-context` tool first.**
+**IMPORTANT: When searching for context-dependent information (e.g., character profiles, configuration files), you should try the `novel find-context` tool first.**
 
-Do **not** use general-purpose search tools like `grep`, `rg`, `glob`, or `find` for this purpose initially. The `novel find-context` tool is the single source of truth for resolving project-specific aliases and file structures.
+The `novel find-context` tool is the preferred method for resolving project-specific aliases and file structures.
 
-**The Tool's Result is Absolute**
-- **If the tool returns content**: Use that content as the sole correct answer.
-- **If the tool returns "not found"**: Do **not** search further. Report immediately that the information was not found.
+**Search Strategy**
+- **First**: Try `novel find-context` for NovelEnv-specific searches
+- **If novel command fails or returns "not found"**: Use general-purpose search tools like `Grep`, `Read`, `Glob` as fallback
+- **If both approaches fail**: Report that the information was not found
 
 **Usage Examples (always use `novel` command):**
 ```bash
