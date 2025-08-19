@@ -24,6 +24,7 @@ project/
 ## 主要機能
 
 ### NovelEnv v2の新機能
+
 - **プロジェクト初期化**: インタラクティブなセットアップウィザード
 - **環境切り替え**: Python venv風の環境アクティベーション
 - **統合CLI**: すべてのツールを`novel`コマンドで統一操作
@@ -34,6 +35,7 @@ project/
 ## コンテンツ管理機能
 
 ### コンテンツ管理
+
 - **キャラクタープロファイル**: 性格、能力、関係性を含む詳細なキャラクター開発テンプレート
 - **世界設定**: 創作世界の包括的なドキュメント管理
 - **エピソード管理**: 自動メタデータ抽出によるエピソード追跡
@@ -44,6 +46,7 @@ project/
 NovelEnv v2では、すべてのツールが`novel`コマンドから統一的にアクセスできます。
 
 #### 1. プロジェクト初期化
+
 ```bash
 # インタラクティブモード
 novel init my-novel
@@ -53,6 +56,7 @@ novel init my-novel --non-interactive
 ```
 
 #### 2. 環境アクティベーション
+
 ```bash
 # 環境をアクティベート
 novel activate my-novel
@@ -62,6 +66,7 @@ novel activate .
 ```
 
 #### 3. Context Weaver（コンテキストウィーバー）
+
 ```bash
 # Webサーバー起動
 novel weave serve --port 3000
@@ -71,6 +76,7 @@ novel weave resolve <NARRATIVE_ID>
 ```
 
 #### 4. Find Context（ファインドコンテキスト）
+
 ```bash
 # キャラクタープロファイル取得
 novel find-context profile <character_name>
@@ -80,12 +86,14 @@ novel find-context episode --character <character_name>
 ```
 
 #### 5. Episode Info Dumper（エピソード情報ダンパー）
+
 ```bash
 # エピソード情報をダンプ
 novel dump episodes
 ```
 
 #### 6. Writing Style Manager（文体スタイル管理）
+
 ```bash
 # 利用可能なスタイルと導入済みスタイルを表示
 novel style list
@@ -100,6 +108,7 @@ novel style info emotion_focused
 ## はじめに
 
 ### 前提条件
+
 - Rust 1.70+（CLIツール用）
 - モダンWebブラウザ（Context Weaver WebUI用）
 - LLM CLIツール（Episode Info DumperにはClaude CLI推奨）
@@ -119,6 +128,7 @@ export PATH="$HOME/.local/bin:$PATH"
 ```
 
 インストールスクリプトは以下を実行します：
+
 - すべてのCLIツールをビルド
 - `~/.local/bin`にシンボリックリンクを作成
 - リビルド時は自動的に最新版が反映される

@@ -7,6 +7,7 @@ description: キャラクター設定ファイルの重複・冗長記述を削�
 Usage: `/char-slim <character_name> [--fix]`
 
 Extract the character name and options from `$ARGUMENTS`.
+
 - First argument: character name
 - Optional flag: `--fix` to apply changes (default: analysis only)
 
@@ -16,7 +17,8 @@ Extract the character name and options from `$ARGUMENTS`.
 
 ## Task
 
-Analyze the character profile file to identify and reduce redundant or verbose descriptions while preserving all essential information.
+Analyze the character profile file to identify and reduce redundant or verbose descriptions while preserving all
+essential information.
 
 ### Reduction Targets
 
@@ -39,28 +41,30 @@ Analyze the character profile file to identify and reduce redundant or verbose d
 ### Analysis Process
 
 1. **Scan for Redundancies**:
-   - Identify sections discussing the same topic
-   - Find repeated explanations of the same concept
-   - Locate overly detailed descriptions
+    - Identify sections discussing the same topic
+    - Find repeated explanations of the same concept
+    - Locate overly detailed descriptions
 
 2. **Semantic Clustering**:
-   - Group related content by meaning, not just keywords
-   - Identify conceptual overlaps across different sections
+    - Group related content by meaning, not just keywords
+    - Identify conceptual overlaps across different sections
 
 3. **Structure Optimization**:
-   - Flatten deep hierarchies
-   - Merge similar subsections
-   - Remove unnecessary formatting layers
+    - Flatten deep hierarchies
+    - Merge similar subsections
+    - Remove unnecessary formatting layers
 
 ### Output
 
 **If `--fix` is NOT specified (default)**:
+
 - Calculate reduction percentage: `(original_length - estimated_new_length) / original_length * 100`
 - List major redundancies found with line numbers
 - Provide summary of proposed changes
 - Show estimated character count reduction
 
 **If `--fix` IS specified**:
+
 - Apply all identified reductions
 - Preserve file structure readability
 - Maintain markdown formatting

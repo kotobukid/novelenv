@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a creative writing project repository. It contains tools and a suggested structure for managing manuscripts, character profiles, and world-building documents.
+This is a creative writing project repository. It contains tools and a suggested structure for managing manuscripts,
+character profiles, and world-building documents.
 
 ## Repository Structure
 
@@ -62,6 +63,7 @@ project-name/
 ```
 
 **Key Changes from Earlier Versions:**
+
 - `official/` → `environment/` (for world-building and environmental settings)
 - `scrap/` → `notes/` (for general notes and ideas)
 - `find_context.toml` → `novelenv.toml` (unified configuration for all CLI tools)
@@ -71,7 +73,8 @@ project-name/
 
 ## NovelEnv v2 Project Management
 
-NovelEnv v2 uses a unified `novel` command to manage projects. Each novel project is created as a separate directory with its own Git repository.
+NovelEnv v2 uses a unified `novel` command to manage projects. Each novel project is created as a separate directory
+with its own Git repository.
 
 ### Project Creation
 
@@ -103,12 +106,15 @@ git commit -m "Initial project setup"
 ## Common Tasks
 
 ### Text Generation
+
 When asked to "generate text" without specific save location instructions:
+
 - Create files in the `scene_sketch/` directory.
 - Use descriptive names for the `.md` files.
 - Follow any writing style guidelines found in the `writing_style/` directory.
 
 **Important for Task tool usage**: When using the Task tool to generate content:
+
 - The Task agent should always report the exact filename it created in its response.
 - Example: "Created scene at: scene_sketch/character_interaction_theme.md"
 - This ensures the main agent can directly access the created file without searching.
@@ -124,7 +130,8 @@ This repository includes several command-line tools to assist with writing and c
 
 ### `context-weaver` Tool Usage Guide
 
-Context Weaver is a narrative context management tool that helps manage and resolve complex context for creative writing projects.
+Context Weaver is a narrative context management tool that helps manage and resolve complex context for creative writing
+projects.
 
 #### Start the Web UI Server
 
@@ -137,6 +144,7 @@ Context Weaver is a narrative context management tool that helps manage and reso
 ```
 
 This starts a web server at http://localhost:3000 where you can:
+
 - Browse project files in a tree view
 - Create narrative contexts by dragging and dropping files
 - Save narratives with unique IDs
@@ -152,7 +160,8 @@ This starts a web server at http://localhost:3000 where you can:
 ./cli-tools/context-weaver/target/release/weaver resolve <NARRATIVE_ID> --path /path/to/your/project
 ```
 
-This outputs the resolved context (all included files concatenated) to stdout. The `--path` option is optional when running from the project root directory.
+This outputs the resolved context (all included files concatenated) to stdout. The `--path` option is optional when
+running from the project root directory.
 
 #### Usage in Claude Code
 
@@ -167,6 +176,7 @@ When a user references a narrative ID, use the resolve command to get the full c
 ```
 
 The tool will:
+
 - Load the narrative configuration from `.weaver-narratives.json`
 - Resolve all file includes (full files, sections, or line ranges)
 - Output the concatenated context to stdout
@@ -175,9 +185,11 @@ The tool will:
 
 #### Primary Principle: Contextual Search
 
-When searching for context-dependent information (e.g., character profiles, configuration files), **you must always use the `find-context` tool first.**
+When searching for context-dependent information (e.g., character profiles, configuration files), **you must always use
+the `find-context` tool first.**
 
-Do **not** use general-purpose search tools like `grep`, `rg`, `glob`, or `find` for this purpose initially. The `find-context` tool is the single source of truth for resolving project-specific aliases and file structures.
+Do **not** use general-purpose search tools like `grep`, `rg`, `glob`, or `find` for this purpose initially. The
+`find-context` tool is the single source of truth for resolving project-specific aliases and file structures.
 
 #### The Tool's Result is Absolute
 
@@ -185,19 +197,20 @@ The output from the `find-context` tool is the **Ground Truth** for this project
 
 - **If the tool returns content**: Use that content as the sole correct answer.
 - **If the tool returns "not found"**: Do **not** search further.
-  - Do not speculate that the file might exist elsewhere.
-  - Do not try to re-search with different keywords based on user intent.
-  - Immediately report to the user that the information was not found according to the tool. This ensures fast and reliable feedback.
+    - Do not speculate that the file might exist elsewhere.
+    - Do not try to re-search with different keywords based on user intent.
+    - Immediately report to the user that the information was not found according to the tool. This ensures fast and
+      reliable feedback.
 
 #### Your Thought Process
 
 Your thought process for contextual searches should be as follows:
 
-1.  Receive a request from the user, e.g., "Find information on '[character_name]'."
-2.  Identify this as a contextual search.
-3.  Recall this guideline and select the `find-context` tool as the **highest priority**.
-4.  Execute the tool with the appropriate subcommand and arguments.
-5.  Act according to the rules above based on the result.
+1. Receive a request from the user, e.g., "Find information on '[character_name]'."
+2. Identify this as a contextual search.
+3. Recall this guideline and select the `find-context` tool as the **highest priority**.
+4. Execute the tool with the appropriate subcommand and arguments.
+5. Act according to the rules above based on the result.
 
 Adhering to this process eliminates inefficient detours and provides the best results for both the LLM and the user.
 
@@ -231,7 +244,8 @@ The tool is located at `./cli-tools/find-context/target/release/find-context`.
 
 **To find episodes featuring a character:**
 
-This requires an up-to-date `episode_index.json` file in `.novelenv/` or project root. If the command fails, it might be because the index is missing or outdated. You can regenerate it by running the `dump-episode-info` tool.
+This requires an up-to-date `episode_index.json` file in `.novelenv/` or project root. If the command fails, it might be
+because the index is missing or outdated. You can regenerate it by running the `dump-episode-info` tool.
 
 - **Example:** Find all episodes featuring a character.
   ```sh
@@ -241,7 +255,8 @@ This requires an up-to-date `episode_index.json` file in `.novelenv/` or project
 
 ### `dump-episode-info` Tool
 
-This tool generates the `episode_index.json` file in the `.novelenv/` directory, which is required by the `find-context episode` command. It uses an LLM to read each episode file and extract structured data.
+This tool generates the `episode_index.json` file in the `.novelenv/` directory, which is required by the
+`find-context episode` command. It uses an LLM to read each episode file and extract structured data.
 
 - **Usage**: `(cd cli-tools/dump-episode-info && cargo run)`
 - **Configuration**: Reads from `novelenv.toml` (preferred) or `find_context.toml` (legacy)
@@ -250,7 +265,8 @@ This tool generates the `episode_index.json` file in the `.novelenv/` directory,
 
 ### `novel style` Command Usage Guide
 
-The `novel style` command allows you to manage writing style templates in your project. This is particularly useful when NovelEnv is updated with new writing styles after you've created your project.
+The `novel style` command allows you to manage writing style templates in your project. This is particularly useful when
+NovelEnv is updated with new writing styles after you've created your project.
 
 #### List Available and Installed Styles
 
@@ -260,6 +276,7 @@ novel style list
 ```
 
 Output example:
+
 ```
 📝 Writing Styles:
 
@@ -280,7 +297,8 @@ novel style install combat_tension --local
 novel style install horror
 ```
 
-This copies the specified style template from the global NovelEnv installation to your project's `writing_style/` directory.
+This copies the specified style template from the global NovelEnv installation to your project's `writing_style/`
+directory.
 
 #### View Style Information
 
@@ -317,9 +335,11 @@ novel style info psycho_horror
 
 ### `pick-name` Tool
 
-This tool generates random character names for temporary/mob characters in scene sketches, avoiding common LLM name choices that may feel repetitive.
+This tool generates random character names for temporary/mob characters in scene sketches, avoiding common LLM name
+choices that may feel repetitive.
 
 **Usage via novel command:**
+
 ```bash
 # Given names only (default)
 novel pick-name -- --genre fantasy --gender male                    # → "セラス"
@@ -339,6 +359,7 @@ novel pick-name -- --genre modern --gender female --format full     # → "Harpe
 ```
 
 **History management:**
+
 ```bash
 novel pick-name -- --show-history                     # View recent name usage
 novel pick-name -- --clear-history                    # Clear usage history
@@ -346,9 +367,12 @@ novel pick-name -- --genre fantasy --gender male --ignore-history  # Ignore hist
 ```
 
 **When to use:**
+
 - For temporary characters in scene sketches
 - When you need a quick name for background characters
 - To avoid repetitive LLM name patterns
 - NOT for main characters (humans should name important characters)
 
-The tool uses curated name lists that exclude commonly overused names and problematic associations identified in `character_profile/character_creation.md`. History is stored in `.novelenv/name_history.txt` in a simple `category:name` format.
+The tool uses curated name lists that exclude commonly overused names and problematic associations identified in
+`character_profile/character_creation.md`. History is stored in `.novelenv/name_history.txt` in a simple `category:name`
+format.

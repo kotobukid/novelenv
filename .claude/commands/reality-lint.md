@@ -16,7 +16,8 @@ Analyze the story file `$ARGUMENTS` against the reality rules defined in `@rules
 
 ## Task
 
-Based on the reality rules above, validate the story content and identify any violations or inconsistencies. Check specifically for:
+Based on the reality rules above, validate the story content and identify any violations or inconsistencies. Check
+specifically for:
 
 1. Physical law consistency and scientific accuracy
 2. World-building coherence and internal consistency
@@ -25,6 +26,7 @@ Based on the reality rules above, validate the story content and identify any vi
 5. Setting contradictions
 
 For each issue found:
+
 - Quote the specific passage
 - Identify which rule is violated
 - Explain the violation clearly

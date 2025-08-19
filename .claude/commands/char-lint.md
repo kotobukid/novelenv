@@ -18,7 +18,8 @@ Extract the story file (first argument) and character name (second argument) fro
 
 ## Task
 
-Cross-reference the character's actions, dialogue, and behavior in the story against their established profile. Check for:
+Cross-reference the character's actions, dialogue, and behavior in the story against their established profile. Check
+for:
 
 1. **Personality Consistency**: Does the character act according to their established personality traits?
 2. **Speech Patterns**: Are their dialogue style and vocabulary consistent with their profile?
@@ -28,6 +29,7 @@ Cross-reference the character's actions, dialogue, and behavior in the story aga
 6. **Character Arc**: Are any character developments logical and well-motivated?
 
 For each finding:
+
 - Quote the specific passage from the story
 - Reference the relevant profile information
 - Explain the consistency or inconsistency
@@ -35,4 +37,5 @@ For each finding:
 
 **IMPORTANT: Output the analysis results in Japanese (日本語で分析結果を出力してください)**
 
-**NOTE: If no inconsistencies are found, clearly state that the character portrayal is consistent with their established profile.**
+**NOTE: If no inconsistencies are found, clearly state that the character portrayal is consistent with their established
+profile.**

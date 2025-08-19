@@ -5,6 +5,7 @@
 NovelEnv v2では、設定ファイル名を `.fcrc` から `find_context.toml` に変更しました。
 
 ### 変更理由
+
 - ファイル内容がTOML形式であることを明確にするため
 - ツール名（find-context）との関連性を明確にするため
 - 拡張子によってエディタのシンタックスハイライトが自動的に適用されるため
@@ -21,6 +22,7 @@ mv .fcrc find_context.toml
 ## 影響を受けるツール
 
 以下のツールが新しいファイル名を使用するよう更新されました：
+
 - `find-context` (novel find-context)
 - `dump-episode-info` (novel dump episodes)
 
