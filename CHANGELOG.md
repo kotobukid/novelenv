@@ -2,10 +2,28 @@
 
 All notable changes to NovelEnv will be documented in this file.
 
+## [v2.1.0] - 2025-01-20
+
+### ⚠️ Breaking Changes
+
+- **Directory Structure**: Renamed `character_profile/` → `character/` across all tools and documentation
+  - Existing projects will need to rename their `character_profile/` directories to `character/`
+  - All configuration files and tool references have been updated
+
 ## [Unreleased]
 
 ### ✨ New Features
 
+- **Profile Analysis Tool**: New `novel profile` command for literary text analysis
+    - Text style analysis with rhythm, tone, and literary device detection
+    - Support for multiple output formats (terminal, markdown, plain text)
+    - Direct URL analysis from novel websites (Syosetu, Kakuyomu, etc.)
+    - Character profile analysis capabilities
+- **Enhanced Find-Context**: Major improvements to profile search functionality
+    - Subdirectory support for hierarchical character organization
+    - Partial match suggestions when exact profiles not found
+    - Auto-selection for unique matches
+- **Directory Structure Modernization**: Renamed `character_profile/` → `character/` across all tools for consistency
 - **Unified Configuration**: Introduced `novelenv.toml` as the primary configuration file, replacing legacy
   `find_context.toml`
 - **Pick-Name Tool**: Full name generation support with family names for fantasy, Japanese, and modern genres
