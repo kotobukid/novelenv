@@ -13,7 +13,7 @@ run_claude_command.sh
 
 episode_index.json
 
-character_profile/.gitkeep
+character/.gitkeep
 episode/.gitkeep
 official/.gitkeep
 scene_sketch/.gitkeep

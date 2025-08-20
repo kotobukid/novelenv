@@ -10,7 +10,7 @@ episode_index.json
 .pick-name-history
 find_context.toml
 
-character_profile/*
+character/*
 episode/*
 official/*
 scene_sketch/*

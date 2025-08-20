@@ -13,7 +13,7 @@ Extract the character name and options from `$ARGUMENTS`.
 
 ## Character Profile
 
-@character_profile/[character_name].md
+@character/[character_name].md
 
 ## Task
 

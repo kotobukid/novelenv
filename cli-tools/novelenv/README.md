@@ -101,14 +101,14 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ```
 my-novel/
-├── character_profile/     # キャラクタープロファイル
-├── episode/              # エピソード・章
-├── scene_sketch/         # シーンスケッチ・下書き
-├── summary/              # 要約・あらすじ
-├── environment/          # 世界設定・環境設定
+├── character/           # キャラクタープロファイル
+├── episode/             # エピソード・章
+├── scene_sketch/        # シーンスケッチ・下書き
+├── summary/             # 要約・あらすじ
+├── environment/         # 世界設定・環境設定
 ├── notes/               # 概念・ギミック・技術説明
-├── writing_style/        # 文体・スタイルガイド
-│   └── always.md         # 基本文体設定（自動生成）
+├── writing_style/       # 文体・スタイルガイド
+│   └── always.md        # 基本文体設定（自動生成）
 ├── .novelenv/           # NovelEnv設定
 │   └── config.toml      # プロジェクト設定
 ├── .claude/             # Claude Code連携

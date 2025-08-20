@@ -15,7 +15,7 @@ This is the structure of the novelenv tools repository:
 
 ```
 novelenv/
-├── character_profile/     # Sample character profiles  
+├── character/     # Sample character profiles  
 ├── scene_sketch/         # Sample scene drafts and snippets
 ├── writing_style/        # Default writing style templates
 │   ├── always.md         # Base writing guidelines
@@ -45,7 +45,7 @@ When you run `novel init project-name`, the following structure is created:
 
 ```
 project-name/
-├── character_profile/     # Character profiles and development
+├── character/     # Character profiles and development
 ├── episode/              # Story episodes and chapters  
 ├── scene_sketch/         # Generated scene drafts and snippets
 ├── summary/              # Episode summaries and story outlines
@@ -234,19 +234,19 @@ The tool is located at `./cli-tools/find-context/target/release/find-context`.
   ```sh
   ./cli-tools/find-context/target/release/find-context profile [character_name]
   ```
-  *(This will also succeed and print the content of `character_profile/[character_name].md`)*
+  *(This will also succeed and print the content of `character/[character_name].md`)*
 
 - **By subdirectory path:** For chapter-specific or context-specific profiles.
   ```sh
   ./cli-tools/find-context/target/release/find-context profile "第1章/太郎"
   ```
-  *(This will look for `character_profile/第1章/太郎.md` first, then fall back to `character_profile/太郎.md` if not found.)*
+  *(This will look for `character/第1章/太郎.md` first, then fall back to `character/太郎.md` if not found.)*
 
 - **Auto-selection for unique matches:** When searching for a profile that doesn't exist exactly as specified, but there's only one similar profile found, the tool will automatically display that profile:
   ```sh
   ./cli-tools/find-context/target/release/find-context profile "ブレード"
   # Output: Profile 'ブレード' not found. Using 'fair/ブレード':
-  # [displays the content of character_profile/fair/ブレード.md]
+  # [displays the content of character/fair/ブレード.md]
   ```
 
 - **Multiple suggestions:** When multiple similar profiles exist, the tool shows suggestions:
@@ -396,5 +396,5 @@ novel pick-name -- --genre fantasy --gender male --ignore-history  # Ignore hist
 - NOT for main characters (humans should name important characters)
 
 The tool uses curated name lists that exclude commonly overused names and problematic associations identified in
-`character_profile/character_creation.md`. History is stored in `.novelenv/name_history.txt` in a simple `category:name`
+`character/character_creation.md`. History is stored in `.novelenv/name_history.txt` in a simple `category:name`
 format.

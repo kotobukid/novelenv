@@ -9,7 +9,7 @@
 - **総ファイル数**: 50個程度のMarkdownファイル
 - **総データ量**: 311KB（約141,000文字）
 - **エピソード構造**: 4-6章/エピソード、章あたり800-2000字
-- **検索対象**: `episode/`, `summary/`, `character_profile/`, `official/`
+- **検索対象**: `episode/`, `summary/`, `character/`, `official/`
 
 ### 既存の問題点
 

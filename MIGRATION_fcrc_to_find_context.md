@@ -34,8 +34,8 @@ mv .fcrc find_context.toml
 # find_context.toml - Configuration for find-context tool
 
 [profile.aliases]
-"アベル" = "character_profile/アベル.md"
-"ハンナ" = "character_profile/ハンナ.md"
+"アベル" = "character/アベル.md"
+"ハンナ" = "character/ハンナ.md"
 
 [tools.llm_cli]
 command = "claude"

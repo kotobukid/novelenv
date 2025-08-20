@@ -10,7 +10,7 @@ Python venvのような環境切り替え機能と統合CLIツールを提供す
 
 ```
 project/
-├── character_profile/     # キャラクタープロファイルと開発
+├── character/     # キャラクタープロファイルと開発
 ├── episode/              # ストーリーエピソードとチャプター
 ├── scene_sketch/         # 生成されたシーンドラフトとスニペット
 ├── summary/              # エピソード要約
@@ -163,8 +163,8 @@ novel dump episodes
 ```toml
 # キャラクタープロファイルエイリアス
 [profile.aliases]
-"アベル" = "character_profile/アベル.md"
-"ハンナ" = "character_profile/ハンナ.md"
+"アベル" = "character/アベル.md"
+"ハンナ" = "character/ハンナ.md"
 
 # LLM CLI設定
 [tools.llm_cli]

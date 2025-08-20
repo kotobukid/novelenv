@@ -210,7 +210,7 @@ fn create_project_structure(config: &ProjectConfig, selected_styles: &[String], 
     
     // サブディレクトリを作成
     let directories = [
-        "character_profile",
+        "character",
         "episode", 
         "scene_sketch",
         "summary",
@@ -337,7 +337,7 @@ novel dump episodes
 
 ## ディレクトリ構造
 
-- `character_profile/` - キャラクタープロファイル
+- `character/` - キャラクタープロファイル
 - `episode/` - エピソード・章
 - `scene_sketch/` - シーンスケッチ・下書き
 - `summary/` - 要約・あらすじ
@@ -378,19 +378,19 @@ fn generate_template_descriptions(project_type: &str) -> (String, String) {
     match project_type {
         "連作シリーズ" => (
             "\n- **Series Planning**: Use `summary/series_plan.md` for overall series structure, episode outlines, and foreshadowing management\n- **Episode Creation**: Use `episode/episode_template.md` as the template for individual episodes\n- **Character Development**: Use `notes/character_arc.md` to track character growth across the series".to_string(),
-            "\n- `summary/series_plan.md` - Overall series structure and episode planning\n- `episode/episode_template.md` - Template for individual episodes  \n- `notes/character_arc.md` - Character development tracking\n- `environment/worldbuilding.md` - World setting and rules\n- `character_profile/character_sheet.md` - Detailed character profiles".to_string()
+            "\n- `summary/series_plan.md` - Overall series structure and episode planning\n- `episode/episode_template.md` - Template for individual episodes  \n- `notes/character_arc.md` - Character development tracking\n- `environment/worldbuilding.md` - World setting and rules\n- `character/character_sheet.md` - Detailed character profiles".to_string()
         ),
         "長編小説" => (
             "\n- **Plot Planning**: Use `summary/plot_outline.md` for overall story structure and three-act planning\n- **Chapter Creation**: Use `episode/chapter_template.md` as the template for individual chapters".to_string(),
-            "\n- `summary/plot_outline.md` - Overall plot structure and planning\n- `episode/chapter_template.md` - Template for individual chapters\n- `environment/worldbuilding.md` - World setting and rules\n- `character_profile/character_sheet.md` - Detailed character profiles".to_string()
+            "\n- `summary/plot_outline.md` - Overall plot structure and planning\n- `episode/chapter_template.md` - Template for individual chapters\n- `environment/worldbuilding.md` - World setting and rules\n- `character/character_sheet.md` - Detailed character profiles".to_string()
         ),
         "短編集" => (
             "\n- **Collection Planning**: Use `summary/story_list.md` for managing multiple stories and their themes\n- **Story Creation**: Use `episode/story_template.md` as the template for individual short stories".to_string(),
-            "\n- `summary/story_list.md` - Collection planning and story management\n- `episode/story_template.md` - Template for individual short stories\n- `environment/worldbuilding.md` - World setting and rules\n- `character_profile/character_sheet.md` - Detailed character profiles".to_string()
+            "\n- `summary/story_list.md` - Collection planning and story management\n- `episode/story_template.md` - Template for individual short stories\n- `environment/worldbuilding.md` - World setting and rules\n- `character/character_sheet.md` - Detailed character profiles".to_string()
         ),
         _ => (
             "\n- No specific templates for this project type".to_string(),
-            "\n- `environment/worldbuilding.md` - World setting and rules (if added)\n- `character_profile/character_sheet.md` - Detailed character profiles (if added)".to_string()
+            "\n- `environment/worldbuilding.md` - World setting and rules (if added)\n- `character/character_sheet.md` - Detailed character profiles (if added)".to_string()
         )
     }
 }
@@ -468,13 +468,13 @@ The `find-context` tool is your primary method for searching character profiles 
 novel find-context profile <character_name>
 
 # Examples
-novel find-context profile alice          # Find alice.md in character_profile/
+novel find-context profile alice          # Find alice.md in character/
 novel find-context profile "田中太郎"      # Japanese names work too
 novel find-context profile protagonist    # Can use aliases defined in novelenv.toml
 
 # Subdirectory support - organize profiles by chapters/arcs
-novel find-context profile "第1章/太郎"   # Find character_profile/第1章/太郎.md
-novel find-context profile "arc1/villain" # Find character_profile/arc1/villain.md
+novel find-context profile "第1章/太郎"   # Find character/第1章/太郎.md
+novel find-context profile "arc1/villain" # Find character/arc1/villain.md
 ```
 
 **Advanced Features:**
@@ -483,7 +483,7 @@ novel find-context profile "arc1/villain" # Find character_profile/arc1/villain.
 - Organize character profiles in subdirectories by chapters, story arcs, or any structure
 - Example structure:
   ```
-  character_profile/
+  character/
   ├── main_characters.md
   ├── 第1章/
   │   ├── 太郎.md          # Chapter-specific version
@@ -494,15 +494,15 @@ novel find-context profile "arc1/villain" # Find character_profile/arc1/villain.
 
 **2. Smart Fallback Search**
 - `novel find-context profile "第1章/太郎"` searches:
-  1. `character_profile/第1章/太郎.md` (exact match)
-  2. `character_profile/太郎.md` (fallback to base directory)
+  1. `character/第1章/太郎.md` (exact match)
+  2. `character/太郎.md` (fallback to base directory)
 
 **3. Auto-Selection for Unique Matches**
 - When only one similar profile exists, automatically displays it:
   ```bash
   novel find-context profile "ブレード"
   # Output: Profile 'ブレード' not found. Using 'fair/ブレード':
-  # [displays content of character_profile/fair/ブレード.md]
+  # [displays content of character/fair/ブレード.md]
   ```
 
 **4. Multiple Suggestions**
@@ -516,7 +516,7 @@ novel find-context profile "arc1/villain" # Find character_profile/arc1/villain.
   ```
 
 **Core Features:**
-- Searches `character_profile/` directory with hierarchical support
+- Searches `character/` directory with hierarchical support
 - Supports aliases configured in `novelenv.toml`
 - Returns full character profile content
 - Smart suggestions for similar names
@@ -736,7 +736,7 @@ novel pick-name -- --clear-history
 
 ```
 {}/
-├── character_profile/     # Character profiles and development
+├── character/     # Character profiles and development
 ├── episode/              # Story episodes and chapters
 ├── scene_sketch/         # Generated scene drafts and snippets
 ├── summary/              # Episode summaries and story outlines
@@ -750,7 +750,7 @@ novel pick-name -- --clear-history
 
 When users ask you to create or save content, guide them to the appropriate directories:
 
-### **Character Development (`character_profile/`)**
+### **Character Development (`character/`)**
 - **Character profiles and basic information**: Main character data, backstories, relationships
 - **Character development arcs**: Evolution tracking, personality changes over time
 - **Character reference sheets**: Physical descriptions, mannerisms, speech patterns
@@ -854,7 +854,7 @@ novel find-context profile "第1章/太郎"    # Searches subdirectories first
 novel find-context profile "arc1/villain"  # Supports any organization structure
 
 # Automatic fallback to base directory if subdirectory version not found
-novel find-context profile "第1章/花子"    # Falls back to character_profile/花子.md
+novel find-context profile "第1章/花子"    # Falls back to character/花子.md
 ```
 
 **2. Smart Auto-Selection**
@@ -982,14 +982,14 @@ fn generate_novelenv_toml(config: &ProjectConfig, import_characters: bool) -> St
     let mut profile_aliases = String::new();
     
     if import_characters {
-        profile_aliases.push_str(r#""アベル" = "character_profile/アベル.md"
-"ハンナ" = "character_profile/ハンナ.md"
+        profile_aliases.push_str(r#""アベル" = "character/アベル.md"
+"ハンナ" = "character/ハンナ.md"
 "#);
     } else {
         profile_aliases.push_str(r#"# Example entries - update these based on your actual character files:
-# "アベル" = "character_profile/アベル.md"
-# "ハンナ" = "character_profile/ハンナ.md"
-# "主人公" = "character_profile/protagonist.md"
+# "アベル" = "character/アベル.md"
+# "ハンナ" = "character/ハンナ.md"
+# "主人公" = "character/protagonist.md"
 "#);
     }
     
@@ -1459,8 +1459,8 @@ fn ask_sample_characters_import() -> Result<bool, Box<dyn std::error::Error>> {
 }
 
 fn copy_sample_characters(config: &ProjectConfig) -> Result<(), Box<dyn std::error::Error>> {
-    // NovelEnvのcharacter_profileディレクトリを探す
-    let novelenv_character_dir = find_novelenv_character_profile_dir();
+    // NovelEnvのcharacterディレクトリを探す
+    let novelenv_character_dir = find_novelenv_character_dir();
     
     if let Some(source_dir) = novelenv_character_dir {
         println!("👥 サンプルキャラクターをコピー中...");
@@ -1470,7 +1470,7 @@ fn copy_sample_characters(config: &ProjectConfig) -> Result<(), Box<dyn std::err
         
         for character_file in &sample_characters {
             let source_path = source_dir.join(character_file);
-            let dest_path = format!("{}/character_profile/{}", config.name, character_file);
+            let dest_path = format!("{}/character/{}", config.name, character_file);
             
             if source_path.exists() {
                 if let Err(e) = fs::copy(&source_path, &dest_path) {
@@ -1496,20 +1496,20 @@ fn copy_sample_characters(config: &ProjectConfig) -> Result<(), Box<dyn std::err
     Ok(())
 }
 
-fn find_novelenv_character_profile_dir() -> Option<PathBuf> {
-    // NovelEnvのcharacter_profileディレクトリを探す
+fn find_novelenv_character_dir() -> Option<PathBuf> {
+    // NovelEnvのcharacterディレクトリを探す
     if let Ok(current_exe) = env::current_exe() {
         if let Some(exe_dir) = current_exe.parent() {
             // インストール済み環境
-            let installed_character_profile = exe_dir
+            let installed_character = exe_dir
                 .parent()? // .local
                 .parent()? // home
                 .join("projects")
                 .join("novel")
-                .join("character_profile");
+                .join("character");
             
-            if installed_character_profile.exists() {
-                return Some(installed_character_profile);
+            if installed_character.exists() {
+                return Some(installed_character);
             }
             
             // 開発環境
@@ -1519,18 +1519,18 @@ fn find_novelenv_character_profile_dir() -> Option<PathBuf> {
                 .and_then(|p| p.parent()) // novel-init
                 .and_then(|p| p.parent()) // cli-tools
             {
-                let dev_character_profile = cli_tools_dir
-                    .join("character_profile");
+                let dev_character = cli_tools_dir
+                    .join("character");
                 
-                if dev_character_profile.exists() {
-                    return Some(dev_character_profile);
+                if dev_character.exists() {
+                    return Some(dev_character);
                 }
             }
         }
     }
     
     // フォールバック
-    let fallback = PathBuf::from("character_profile");
+    let fallback = PathBuf::from("character");
     if fallback.exists() {
         return Some(fallback);
     }
@@ -1746,8 +1746,8 @@ fn determine_template_destination(filename: &str) -> &'static str {
         "character_arc.md" => "notes",
         // environmentディレクトリに配置
         "worldbuilding.md" => "environment",
-        // character_profileディレクトリに配置
-        "character_sheet.md" => "character_profile",
+        // characterディレクトリに配置
+        "character_sheet.md" => "character",
         // デフォルトはnotesディレクトリ
         _ => "notes",
     }

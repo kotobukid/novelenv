@@ -81,7 +81,7 @@ novel weave resolve <NARRATIVE_ID>
   "description": "Main character introduction scene",
   "contexts": [
     {
-      "path": "character_profile/protagonist.md",
+      "path": "character/protagonist.md",
       "include_type": { "type": "Full" },
       "order": 0
     },

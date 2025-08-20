@@ -5,18 +5,18 @@
 # Map short names or nicknames to actual file paths
 [profile.aliases]
 # Japanese names example
-"アベル" = "character_profile/アベル.md"
-"ハンナ" = "character_profile/ハンナ.md"
-"主人公" = "character_profile/protagonist.md"
+"アベル" = "character/アベル.md"
+"ハンナ" = "character/ハンナ.md"
+"主人公" = "character/protagonist.md"
 
 # English names example  
-"alice" = "character_profile/Alice_Wonderland.md"
-"bob" = "character_profile/Bob_Builder.md"
+"alice" = "character/Alice_Wonderland.md"
+"bob" = "character/Bob_Builder.md"
 
 # You can use various alias patterns:
-"MC" = "character_profile/main_character.md"          # Abbreviations
-"悪役1" = "character_profile/villain_dragon.md"      # Role-based aliases
-"竜の王" = "character_profile/villain_dragon.md"     # Same file, multiple aliases
+"MC" = "character/main_character.md"          # Abbreviations
+"悪役1" = "character/villain_dragon.md"      # Role-based aliases
+"竜の王" = "character/villain_dragon.md"     # Same file, multiple aliases
 
 # LLM CLI configuration for dump-episode-info tool
 [tools.llm_cli]

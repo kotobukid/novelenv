@@ -13,7 +13,7 @@ NovelEnvプロジェクトの初期化を行うCLIツールです。インタラ
 以下のディレクトリ構造を自動生成：
 ```
 project-name/
-├── character_profile/     # キャラクタープロファイル
+├── character/     # キャラクタープロファイル
 ├── episode/              # エピソード・章
 ├── scene_sketch/         # シーンスケッチ・下書き
 ├── summary/              # 要約・あらすじ
@@ -38,7 +38,7 @@ project-name/
 
 ### 5. サンプルキャラクターインポート
 - アベル.mdとハンナ.mdのサンプルキャラクターファイルをインポート可能
-- ユーザー確認後にNovelEnvの`character_profile/`からコピー
+- ユーザー確認後にNovelEnvの`character/`からコピー
 
 ### 6. カスタムコマンドコピー
 - NovelEnvの`.claude/commands/`からカスタムスラッシュコマンドを自動コピー
@@ -77,7 +77,7 @@ cargo build --release
 
 ### 外部依存
 - NovelEnvの`writing_style/`ディレクトリ（文体スタイルファイル用）
-- NovelEnvの`character_profile/`ディレクトリ（サンプルキャラクター用）
+- NovelEnvの`character/`ディレクトリ（サンプルキャラクター用）
 - NovelEnvの`.claude/commands/`ディレクトリ（カスタムコマンド用）
 
 ## 設定ファイル例

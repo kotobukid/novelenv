@@ -10,7 +10,7 @@ Extract the story file (first argument) and character name (second argument) fro
 
 ## Character Profile
 
-@character_profile/[character_name].md
+@character/[character_name].md
 
 ## Target Story
 

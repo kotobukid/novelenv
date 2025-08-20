@@ -47,8 +47,8 @@ The tool is configured via a `find_context.toml` file located in the project roo
 
 # Aliases for the `profile` subcommand
 [profile.aliases]
-"ルネ" = "character_profile/流音.md"
-"アカリ" = "character_profile/アカリ.md"
+"ルネ" = "character/流音.md"
+"アカリ" = "character/アカリ.md"
 # ... and so on for other characters
 
 # Future subcommands can have their own tables

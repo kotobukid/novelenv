@@ -52,7 +52,7 @@ struct ProfileConfig {
 fn find_project_root() -> Option<PathBuf> {
     let current_dir = env::current_dir().ok()?;
     for path in current_dir.ancestors() {
-        if path.join("novelenv.toml").exists() || path.join("find_context.toml").exists() || path.join("character_profile").exists() {
+        if path.join("novelenv.toml").exists() || path.join("find_context.toml").exists() || path.join("character").exists() {
             return Some(path.to_path_buf());
         }
     }
@@ -116,7 +116,7 @@ fn handle_profile_command(
     }
 
     // Otherwise, try to find the profile with subdirectory support
-    let profile_dir = project_root.join("character_profile");
+    let profile_dir = project_root.join("character");
     let paths_to_try = generate_profile_paths(&profile_dir, &name);
     
     if debug {
