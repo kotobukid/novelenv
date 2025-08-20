@@ -16,7 +16,51 @@ use report::Reporter;
 #[command(name = "profile")]
 #[command(version = "0.1.0")]
 #[command(about = "Analyze text style and statistics for novels")]
-#[command(long_about = None)]
+#[command(long_about = r#"Analyze text style and statistics for novels
+
+ANALYSIS METRICS:
+
+Style Balance:
+  - Dialogue ratio: Percentage of text within quotation marks (「」『』)
+  - Narrative ratio: Remaining text (descriptions, thoughts, actions)
+
+Sentence Rhythm:
+  - Length distribution: How sentence lengths vary throughout the text
+  - Tempo patterns:
+    * Steady: Consistent sentence lengths (low variation)
+    * Varied: Mixed short and long sentences (high variation)
+    * Alternating: Regular short-long-short pattern
+    * Accelerating: Sentences gradually getting shorter (building tension)
+    * Decelerating: Sentences gradually getting longer (slowing pace)
+
+Readability Factors:
+  - Hiragana ratio: Higher percentage generally means easier reading
+  - Average sentence length: Shorter sentences are typically easier to read
+  - Character type distribution: Balance of hiragana/katakana/kanji
+
+FILE FORMAT SUPPORT:
+
+Markdown files (.md):
+  - Automatically removes headers (# lines)
+  - Normalizes paragraph breaks (double newlines → single)
+  - Use --sketch for NovelEnv scene_sketch format
+
+Plain text files (.txt):
+  - Analyzed as-is without modifications
+
+EXAMPLES:
+
+Basic analysis:
+  novel profile episode/chapter1.md
+
+Compare with reference:
+  novel profile my_story.md -- --compare bestseller.txt
+
+NovelEnv sketch analysis:
+  novel profile scene_sketch/interaction.md -- --sketch
+
+Detailed output:
+  novel profile chapter1.md -- --verbose --format json"#)]
 struct Cli {
     /// Input file path (reads from stdin if not specified)
     input: Option<PathBuf>,
