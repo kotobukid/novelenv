@@ -730,6 +730,7 @@ novel pick-name -- --clear-history
 - ✅ `novel weave`
 - ✅ `novel dump`
 - ✅ `novel pick-name`
+- ✅ `novel profile`
 
 ## Repository Structure
 
@@ -880,6 +881,85 @@ novel find-context profile <character_name> --debug
 # WRONG - Do NOT use direct paths like this:
 # ❌ ./cli-tools/find-context/target/release/find-context profile <character_name>
 ```
+
+### Text Analysis and Style Profiling
+
+The `novel profile` command provides statistical analysis of your writing style and text composition. Use this to understand your writing patterns and compare your work with reference texts.
+
+**Basic Usage:**
+```bash
+# Analyze a single file
+novel profile episode/chapter1.md
+
+# Compare your text with a reference work
+novel profile episode/chapter1.md -- --compare reference_novel.txt
+
+# Get JSON output (for data analysis)
+novel profile episode/chapter1.md -- --format json
+
+# Analyze with verbose details
+novel profile episode/chapter1.md -- --verbose
+
+# Specify character encoding for non-UTF8 files
+novel profile old_text.txt -- --encoding shift-jis
+
+# Analyze NovelEnv sketch format (excludes logline and author's note)
+novel profile scene_sketch/character_interaction.md -- --sketch
+
+# Combine options
+novel profile episode/chapter1.md -- --compare reference.md --sketch --verbose
+```
+
+**What it analyzes:**
+- **Style Balance**: Dialogue vs narrative ratio
+- **Sentence Rhythm**: Length distribution and tempo patterns
+- **Readability**: Character type distribution (hiragana/kanji ratio)
+- **Text Statistics**: Character count, sentence count, paragraph structure
+
+**Example Output:**
+```
+📊 Text Profile: chapter1.md
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total: 5,234 chars | 142 sentences
+
+📝 Style Balance
+  Dialogue    35% ██████████░░░░░░░░░░
+  Narrative   65% █████████████░░░░░░░
+
+⚡ Readability
+  Hiragana    54% ██████████░░░░░░░░░░
+  Avg sentence: 24.0 chars
+  Tempo: Varied
+```
+
+**Comparison Mode:**
+When using `--compare`, you'll get a side-by-side analysis highlighting differences in writing style. This is particularly useful for:
+- Comparing your writing style with successful works in your genre
+- Tracking consistency across chapters
+- Identifying areas for improvement
+
+**File Format Support:**
+The tool automatically detects and handles different file formats:
+- **Markdown files (.md)**: Automatically removes headers (# lines) and handles paragraph breaks properly
+- **Plain text files (.txt)**: Processed as-is without modifications
+- **NovelEnv sketch format**: Use `--sketch` option to exclude metadata sections (logline, author's note)
+
+**Markdown Processing:**
+- Headers starting with `#` are automatically excluded from analysis
+- Double newlines (paragraph breaks) are normalized to single newlines
+- Focus is placed on the actual narrative content
+
+**NovelEnv Sketch Support:**
+When analyzing files created with `/sketch` command, use the `--sketch` option to:
+- Exclude `**ログライン**:` sections
+- Remove `**作者ノート**` and `**Author's Note**` sections
+- Skip metadata separators (`---`)
+- Focus analysis on pure story content
+
+**JSON Output:**
+Use `--format json` for programmatic analysis or integration with other tools. The JSON output includes detailed statistics suitable for tracking writing progress over time.
+
+**IMPORTANT:** Always use `novel profile` - never attempt to run the profile tool directly from cli-tools paths.
 
 ## Important Notes
 

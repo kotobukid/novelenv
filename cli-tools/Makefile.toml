@@ -11,7 +11,8 @@ dependencies = [
     "build-dump-episode-info", 
     "build-find-context",
     "build-novel-init",
-    "build-pick-name"
+    "build-pick-name",
+    "build-profile"
 ]
 
 [tasks.build-context-weaver]
@@ -44,6 +45,12 @@ command = "cargo"
 args = ["build", "--release"]
 cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/pick-name"
 
+[tasks.build-profile]
+description = "Build profile in release mode"
+command = "cargo"
+args = ["build", "--release"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/profile"
+
 [tasks.clean-all]
 description = "Clean all CLI tools"
 dependencies = [
@@ -51,7 +58,8 @@ dependencies = [
     "clean-dump-episode-info",
     "clean-find-context", 
     "clean-novel-init",
-    "clean-pick-name"
+    "clean-pick-name",
+    "clean-profile"
 ]
 
 [tasks.clean-context-weaver]
@@ -78,3 +86,8 @@ cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/novel-init"
 command = "cargo"
 args = ["clean"]
 cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/pick-name"
+
+[tasks.clean-profile]
+command = "cargo"
+args = ["clean"]
+cwd = "${CARGO_MAKE_WORKING_DIRECTORY}/profile"

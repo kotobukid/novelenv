@@ -30,6 +30,8 @@ enum Commands {
     PickName(PickNameArgs),
     #[command(about = "Manage writing styles")]
     Style(StyleArgs),
+    #[command(about = "Analyze text style and statistics")]
+    Profile(ProfileArgs),
 }
 
 #[derive(Args)]
@@ -72,6 +74,12 @@ struct PickNameArgs {
 struct StyleArgs {
     #[command(subcommand)]
     command: StyleCommands,
+}
+
+#[derive(Args)]
+struct ProfileArgs {
+    #[arg(help = "Additional arguments")]
+    args: Vec<String>,
 }
 
 #[derive(Subcommand)]
@@ -140,6 +148,11 @@ fn get_tool_path(tool_name: &str) -> PathBuf {
                 .join("target")
                 .join("release")
                 .join("pick-name"),
+            "profile" => cli_tools_dir
+                .join("profile")
+                .join("target")
+                .join("release")
+                .join("profile"),
             _ => panic!("Unknown tool: {}", tool_name),
         };
         
@@ -244,6 +257,10 @@ fn main() {
         }
         Commands::Style(args) => {
             handle_style_command(args);
+        }
+        Commands::Profile(args) => {
+            let tool_path = get_tool_path("profile");
+            execute_tool(tool_path, args.args);
         }
     }
 }

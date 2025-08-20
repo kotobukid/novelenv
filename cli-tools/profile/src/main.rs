@@ -41,6 +41,10 @@ struct Cli {
     #[arg(short, long)]
     verbose: bool,
     
+    /// Treat as NovelEnv sketch format (exclude logline and author's note)
+    #[arg(long)]
+    sketch: bool,
+    
     /// Output raw statistics as JSON (for debugging)
     #[arg(long, hide = true)]
     debug: bool,
@@ -62,13 +66,17 @@ fn main() -> Result<()> {
     // Read input text
     let input_text = read_input(&cli.input, &cli.encoding)?;
     
-    // Analyze main text
-    let profile = analyze_text(&input_text)?;
+    // Preprocess text based on file type and options
+    let processed_text = preprocess_text(&input_text, &cli)?;
+    
+    // Analyze processed text
+    let profile = analyze_text(&processed_text)?;
     
     // Handle comparison if requested
     let comparison = if let Some(compare_path) = &cli.compare {
         let compare_text = read_file(compare_path, &cli.encoding)?;
-        Some(analyze_text(&compare_text)?)
+        let processed_compare_text = preprocess_text(&compare_text, &cli)?;
+        Some(analyze_text(&processed_compare_text)?)
     } else {
         None
     };
@@ -101,6 +109,91 @@ fn read_file(path: &PathBuf, encoding: &str) -> Result<String> {
     
     fs::read_to_string(path)
         .with_context(|| format!("Failed to read file: {}", path.display()))
+}
+
+fn preprocess_text(text: &str, cli: &Cli) -> Result<String> {
+    let mut processed = text.to_string();
+    
+    // Detect file type from extension or content
+    let is_markdown = if let Some(path) = &cli.input {
+        path.extension()
+            .and_then(|ext| ext.to_str())
+            .map(|ext| ext.to_lowercase() == "md")
+            .unwrap_or(false)
+    } else {
+        // If reading from stdin, detect from content (simple heuristic)
+        text.contains("# ") || text.contains("## ")
+    };
+    
+    if is_markdown {
+        processed = preprocess_markdown(&processed, cli.sketch)?;
+    }
+    
+    Ok(processed)
+}
+
+fn preprocess_markdown(text: &str, is_sketch: bool) -> Result<String> {
+    let mut lines: Vec<&str> = text.lines().collect();
+    
+    // Remove Markdown headers (lines starting with #)
+    lines.retain(|line| !line.trim_start().starts_with('#'));
+    
+    // Handle NovelEnv sketch format
+    if is_sketch {
+        lines = remove_sketch_metadata(lines)?;
+    }
+    
+    let processed = lines.join("\n");
+    
+    // Convert Markdown paragraph breaks (double newlines) to single newlines
+    let processed = processed
+        .split("\n\n")
+        .filter(|para| !para.trim().is_empty())
+        .collect::<Vec<_>>()
+        .join("\n");
+    
+    Ok(processed)
+}
+
+fn remove_sketch_metadata(lines: Vec<&str>) -> Result<Vec<&str>> {
+    let mut result = Vec::new();
+    let mut in_metadata = false;
+    let mut skip_until_content = true;
+    
+    for line in lines {
+        let trimmed = line.trim();
+        
+        // Skip logline section (marked with **ログライン**)
+        if trimmed.starts_with("**ログライン**") {
+            skip_until_content = true;
+            continue;
+        }
+        
+        // Skip separator lines
+        if trimmed == "---" {
+            skip_until_content = false;
+            continue;
+        }
+        
+        // Skip author's note section (usually at the end)
+        if trimmed.starts_with("**作者ノート**") || 
+           trimmed.starts_with("**Author's Note**") {
+            break;
+        }
+        
+        // Skip empty lines at the beginning
+        if skip_until_content && trimmed.is_empty() {
+            continue;
+        }
+        
+        // Start including content after separator
+        if !skip_until_content || !trimmed.is_empty() {
+            skip_until_content = false;
+            result.push(line);
+        }
+    }
+    
+    Ok(result)
 }
 
 fn analyze_text(text: &str) -> Result<TextProfile> {
