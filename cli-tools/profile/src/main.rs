@@ -89,6 +89,10 @@ struct Cli {
     #[arg(long)]
     sketch: bool,
     
+    /// Download and analyze from URL (auto-detects site type)
+    #[arg(long)]
+    url: Option<String>,
+    
     /// Output raw statistics as JSON (for debugging)
     #[arg(long, hide = true)]
     debug: bool,
@@ -108,7 +112,11 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     
     // Read input text
-    let input_text = read_input(&cli.input, &cli.encoding)?;
+    let input_text = if let Some(url) = &cli.url {
+        fetch_web_text(url)?
+    } else {
+        read_input(&cli.input, &cli.encoding)?
+    };
     
     // Preprocess text based on file type and options
     let processed_text = preprocess_text(&input_text, &cli)?;
@@ -238,6 +246,121 @@ fn remove_sketch_metadata(lines: Vec<&str>) -> Result<Vec<&str>> {
     }
     
     Ok(result)
+}
+
+fn fetch_web_text(url: &str) -> Result<String> {
+    use reqwest::blocking::Client;
+    use scraper::{Html, Selector};
+    
+    // Create HTTP client
+    let client = Client::builder()
+        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+        .build()?;
+    
+    // Fetch the page
+    let response = client.get(url).send()?;
+    let html_content = response.text()?;
+    
+    // Auto-detect site type from URL
+    if let Some(site_config) = get_site_config(url) {
+        extract_text_by_selector(&html_content, site_config.selector)
+    } else {
+        let supported_sites: Vec<&str> = SUPPORTED_SITES.iter().map(|s| s.name).collect();
+        Err(anyhow::anyhow!("Unsupported site. Currently supported: {}", supported_sites.join(", ")))
+    }
+}
+
+struct SiteConfig {
+    domain: &'static str,
+    selector: &'static str,
+    name: &'static str,
+}
+
+const SUPPORTED_SITES: &[SiteConfig] = &[
+    SiteConfig {
+        domain: "syosetu.com",
+        selector: "div.js-novel-text.p-novel__text p",
+        name: "小説家になろう",
+    },
+    SiteConfig {
+        domain: "kakuyomu.jp",
+        selector: "div.widget-episodeBody.js-episode-body p",
+        name: "カクヨム",
+    },
+    // Note: Sites below use dynamic content loading (AJAX) and require browser automation
+    // SiteConfig {
+    //     domain: "alphapolis.co.jp",
+    //     selector: "div#novelBody p",
+    //     name: "アルファポリス (AJAX読み込み)",
+    // },
+    // SiteConfig {
+    //     domain: "novelup.plus",
+    //     selector: "p#episode_content",
+    //     name: "ノベルアップ+",
+    // },
+    // SiteConfig {
+    //     domain: "estar.jp",
+    //     selector: "div.story-content p", 
+    //     name: "エブリスタ",
+    // },
+];
+
+fn get_site_config(url: &str) -> Option<&'static SiteConfig> {
+    SUPPORTED_SITES.iter().find(|site| url.contains(site.domain))
+}
+
+fn extract_text_by_selector(html_content: &str, selector: &str) -> Result<String> {
+    use scraper::{Html, Selector};
+    
+    // Parse HTML
+    let document = Html::parse_document(html_content);
+    let selector = Selector::parse(selector)
+        .map_err(|_| anyhow::anyhow!("Failed to create CSS selector: {}", selector))?;
+    
+    // Extract text from paragraphs
+    let mut novel_text = String::new();
+    for element in document.select(&selector) {
+        let text = element.inner_html();
+        // Remove <br /> tags and convert to newlines
+        let text = text.replace("<br />", "\n");
+        // Remove any remaining HTML tags (should be minimal)
+        let text = strip_html_tags(&text);
+        if !text.trim().is_empty() {
+            novel_text.push_str(&text);
+            novel_text.push('\n');
+        }
+    }
+    
+    if novel_text.trim().is_empty() {
+        return Err(anyhow::anyhow!("No novel text found at the given URL. Please check if the URL is correct."));
+    }
+    
+    Ok(novel_text)
+}
+
+fn extract_narou_text(html_content: &str) -> Result<String> {
+    extract_text_by_selector(html_content, "div.js-novel-text.p-novel__text p")
+}
+
+fn extract_kakuyomu_text(html_content: &str) -> Result<String> {
+    extract_text_by_selector(html_content, "div.widget-episodeBody.js-episode-body p")
+}
+
+fn strip_html_tags(text: &str) -> String {
+    // Simple HTML tag removal - for more complex cases, consider using html2text crate
+    let mut result = String::new();
+    let mut in_tag = false;
+    
+    for ch in text.chars() {
+        match ch {
+            '<' => in_tag = true,
+            '>' => in_tag = false,
+            _ if !in_tag => result.push(ch),
+            _ => {}
+        }
+    }
+    
+    result
 }
 
 fn analyze_text(text: &str) -> Result<TextProfile> {

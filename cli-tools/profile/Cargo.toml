@@ -27,3 +27,9 @@ colored = "2.1"
 # Error handling
 anyhow = "1.0"
 thiserror = "1.0"
+
+# HTTP client for web scraping
+reqwest = { version = "0.12", features = ["blocking"] }
+
+# HTML parsing
+scraper = "0.20"
