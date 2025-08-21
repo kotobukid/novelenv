@@ -310,47 +310,11 @@ node_modules/
     fs::write(format!("{}/novelenv.toml", config.name), novelenv_content)?;
     
     // README.mdを作成
-    let readme_content = format!(r#"# {}
-
-{}
-
-## プロジェクト情報
-
-- **種類**: {}
-- **ジャンル**: {}
-- **作成日**: {}
-
-## 使用方法
-
-このプロジェクトはNovelEnvで管理されています。
-
-```bash
-# キャラクタープロファイルを検索
-novel find-context profile <キャラクター名>
-
-# コンテキストウィーバーを起動
-novel weave serve --port 3000
-
-# エピソード情報をダンプ
-novel dump episodes
-```
-
-## ディレクトリ構造
-
-- `character/` - キャラクタープロファイル
-- `episode/` - エピソード・章
-- `scene_sketch/` - シーンスケッチ・下書き
-- `summary/` - 要約・あらすじ
-- `environment/` - 世界観・環境設定
-- `notes/` - 概念・ギミック・技術説明
-- `writing_style/` - 文体・スタイルガイド
-"#, config.name, config.description, config.project_type, config.genre, config.created);
+    let readme_content = generate_readme_content(config);
     
     fs::write(format!("{}/README.md", config.name), readme_content)?;
     
-    // writing_style/always.mdを作成
-    let always_md_content = generate_always_md(config);
-    fs::write(format!("{}/writing_style/always.md", config.name), always_md_content)?;
+    // writing_style/always.mdはcopy_selected_writing_stylesでコピーされる
     
     // カスタムスラッシュコマンドをコピー
     copy_custom_commands(config)?;
@@ -1031,81 +995,6 @@ created = "{}"
 "#, profile_aliases, config.name, config.project_type, config.genre, config.created)
 }
 
-fn generate_always_md(config: &ProjectConfig) -> String {
-    format!(r#"# 文体ガイドライン - always.md
-
-このファイルは、すべてのテキスト生成時に適用される基本的な文体・スタイルガイドラインを定義します。
-
-## プロジェクト基本情報
-
-- **プロジェクト名**: {}
-- **ジャンル**: {}
-- **種類**: {}
-
-## 基本的な文体設定
-
-### 文体・語り手
-- **語り手**: 三人称視点
-- **時制**: 過去形
-- **敬語**: 基本的に使用しない（会話内は除く）
-
-### 文章の特徴
-- **文の長さ**: 中程度（20-40文字程度）を基本とし、適度に長短を混在
-- **句読点**: 読みやすさを重視し、適切に配置
-- **改行**: 段落は適度に改行し、読みやすさを保つ
-
-## ジャンル別の特徴
-
-{}
-
-## 文章作成時の注意点
-
-### 必須事項
-- 一貫した視点を保つ
-- キャラクターの個性を文体にも反映
-- シーンの雰囲気に応じた文体の調整
-
-### 避けるべき表現
-- 不自然な敬語の混在
-- 視点の混乱（一人称と三人称の混在など）
-- 過度に複雑な文構造
-
-## 特別な設定
-
-### 会話文
-- 「」を使用
-- キャラクターごとの特徴的な話し方を意識
-
-### 描写
-- 五感を意識した具体的な描写
-- 過度に詳細すぎない、適度な情報量
-
-## このファイルの使用方法
-
-このファイルの内容は、以下の場面で参照されます：
-- LLMによるテキスト生成時の基準として
-- 既存テキストの校正・編集時の指針として
-- 新しいライター・協力者への文体説明として
-
----
-
-*このファイルはプロジェクトの進行に合わせて更新してください。*
-"#, 
-    config.name, 
-    config.genre, 
-    config.project_type,
-    match config.genre.as_str() {
-        "SF" => "- 科学的な用語を適度に使用\n- 未来的・技術的な雰囲気を演出\n- 論理的で明確な文体",
-        "ファンタジー" => "- 詩的で美しい表現を意識\n- 異世界観を表現する独特な語彙\n- 神秘的で幻想的な雰囲気",
-        "ミステリー" => "- 緊張感のある簡潔な文体\n- 論理的で冷静な描写\n- 読者の推理を促す情報の提示",
-        "恋愛" => "- 感情豊かで繊細な表現\n- 内面描写を重視\n- 美しい情景描写",
-        "ホラー" => "- 不安感を煽る表現技法\n- 五感に訴える恐怖描写\n- 短く印象的な文での緊張演出",
-        "歴史" => "- 時代考証を意識した語彙選択\n- 品格のある文体\n- 時代背景に応じた敬語使用",
-        "現代" => "- 自然で親しみやすい文体\n- 現代的な語彙と表現\n- リアリティのある会話",
-        _ => "- プロジェクトの特色を活かした文体\n- 読者に親しみやすい表現\n- 一貫性のある文体"
-    }
-)
-}
 
 fn copy_custom_commands(config: &ProjectConfig) -> Result<(), Box<dyn std::error::Error>> {
     // NovelEnvのメインディレクトリを探す
@@ -1405,17 +1294,12 @@ fn copy_selected_writing_styles(config: &ProjectConfig, selected_styles: &[Strin
         println!("📝 選択されたwriting_styleファイルをコピー中...");
         
         let mut copied_count = 0;
-        let mut skipped_always = false;
         
         for filename in selected_styles {
             let source_path = source_dir.join(filename);
             let dest_path = format!("{}/writing_style/{}", config.name, filename);
             
-            // always.mdは既に generate_always_md で作成済みなのでスキップ
-            if filename == "always.md" {
-                skipped_always = true;
-                continue;
-            }
+            // always.mdもコピー対象に含める
             
             if source_path.exists() {
                 if let Err(e) = fs::copy(&source_path, &dest_path) {
@@ -1432,9 +1316,6 @@ fn copy_selected_writing_styles(config: &ProjectConfig, selected_styles: &[Strin
             println!("✅ {} 個のwriting_styleファイルをコピーしました", copied_count);
         }
         
-        if skipped_always {
-            println!("📝 always.md は自動生成されました");
-        }
         
     } else {
         println!("📝 NovelEnvのwriting_styleディレクトリが見つかりません（スキップ）");
@@ -1442,6 +1323,132 @@ fn copy_selected_writing_styles(config: &ProjectConfig, selected_styles: &[Strin
     
     Ok(())
 }
+
+fn generate_readme_content(config: &ProjectConfig) -> String {
+    let scale_info = if config.enable_scale_management {
+        format!(r#"
+## 作品スケール管理
+
+このプロジェクトではスケール管理システムが有効になっています。
+
+- **作品スケールレベル**: {}
+- **シリーズ構成**: {}話構成
+- **危険ゾーン**: 第{}話付近（全体の70%地点）
+
+詳細は `writing_style/scale_management.md` を参照してください。
+"#, 
+            config.scale_level,
+            config.total_episodes,
+            (config.total_episodes as f32 * 0.7).round() as usize
+        )
+    } else {
+        String::new()
+    };
+
+    let project_specific_info = match config.project_type.as_str() {
+        "連作シリーズ" => r#"
+## シリーズ管理
+
+- `summary/series_plan.md` - 全体のシリーズ構成
+- `notes/character_arc.md` - キャラクター成長の追跡
+- `episode/episode_template.md` - エピソード作成テンプレート
+"#,
+        "長編小説" => r#"
+## 長編小説構成
+
+- `summary/plot_outline.md` - 全体のプロット構成
+- `episode/chapter_template.md` - 章作成テンプレート
+"#,
+        "短編集" => r#"
+## 短編集管理
+
+- `summary/story_list.md` - 短編作品の管理
+- `episode/story_template.md` - 短編作成テンプレート
+"#,
+        _ => ""
+    };
+
+    format!(r#"# {}
+
+{}
+
+## プロジェクト情報
+
+- **種類**: {}
+- **ジャンル**: {}
+- **作成日**: {}
+- **シリーズ構成**: {}話構成{}
+
+## 使用方法
+
+このプロジェクトはNovelEnv v2で管理されています。
+
+### 基本コマンド
+
+```bash
+# キャラクタープロファイルを検索
+novel find-context profile <キャラクター名>
+
+# コンテキストウィーバーを起動
+novel weave serve --port 3000
+
+# エピソード情報をダンプ（初回実行推奨）
+novel dump episodes
+
+# 文体分析
+novel profile <ファイルパス>
+
+# キャラクター名生成
+novel pick-name -- --genre {} --gender <male/female>
+```
+
+### ワークフロー例
+
+1. **新キャラクター作成**: `character/` ディレクトリにプロファイルを作成
+2. **エピソード執筆**: `episode/` で本編を執筆、`scene_sketch/` で下書き
+3. **インデックス更新**: `novel dump episodes` でキャラクター検索データを更新
+4. **コンテキスト管理**: `novel weave serve` で複数ファイルを組み合わせた執筆支援{}
+
+## ディレクトリ構造
+
+- `character/` - キャラクタープロファイル
+- `episode/` - エピソード・章（本編）
+- `scene_sketch/` - シーンスケッチ・下書き
+- `summary/` - 要約・あらすじ・構成
+- `environment/` - 世界観・環境設定
+- `notes/` - 概念・ギミック・技術説明
+- `writing_style/` - 文体・スタイルガイド
+  - `always.md` - 基本文体ガイドライン
+  - `{}` - ジャンル別文体ガイド
+- `.novelenv/` - 自動生成データ（ツール用）
+
+## 重要な注意事項
+
+**🚨 必ずnovelコマンドを使用してください**
+
+- ✅ `novel find-context profile <name>`
+- ✅ `novel weave serve --port 3000`
+- ❌ `./cli-tools/find-context/target/release/find-context`
+
+このプロジェクトはNovelEnv v2プロジェクトのため、直接的なツールパスは動作しません。
+
+## 詳細情報
+
+詳細なコマンド使用方法とプロジェクト構成については `CLAUDE.md` を参照してください。
+"#, 
+        config.name,
+        config.description,
+        config.project_type,
+        config.genre,
+        config.created,
+        config.total_episodes,
+        scale_info,
+        config.genre.to_lowercase(),
+        project_specific_info,
+"(ジャンル別文体ファイルは手動で選択可能)"
+    )
+}
+
 
 fn ask_sample_characters_import() -> Result<bool, Box<dyn std::error::Error>> {
     // 端末接続エラーの場合はデフォルト値を使用
